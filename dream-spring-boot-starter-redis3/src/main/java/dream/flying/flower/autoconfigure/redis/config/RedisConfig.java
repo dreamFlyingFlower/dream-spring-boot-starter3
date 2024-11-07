@@ -45,7 +45,7 @@ import dream.flying.flower.ConstDate;
 public class RedisConfig implements CachingConfigurer {
 
 	@Bean
-	@ConditionalOnMissingBean
+	@ConditionalOnMissingBean(name = "redisTemplate")
 	RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory factory) {
 		Jackson2JsonRedisSerializer<Object> jackson2JsonRedisSerializer = jackson2JsonRedisSerializer();
 
