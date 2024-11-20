@@ -1,8 +1,5 @@
 package dream.flying.flower.autoconfigure.web;
 
-import javax.validation.ConstraintViolation;
-import javax.validation.ConstraintViolationException;
-
 import org.apache.catalina.connector.ClientAbortException;
 import org.springframework.beans.TypeMismatchException;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
@@ -27,6 +24,8 @@ import dream.flying.flower.enums.TipFormatEnum;
 import dream.flying.flower.framework.web.helper.WebHelpers;
 import dream.flying.flower.result.Result;
 import dream.flying.flower.result.ResultException;
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 
 /**
