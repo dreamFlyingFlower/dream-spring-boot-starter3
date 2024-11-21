@@ -6,6 +6,7 @@ import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
+import org.springframework.context.MessageSource;
 import org.springframework.validation.BindException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
@@ -21,11 +22,13 @@ import org.springframework.web.servlet.NoHandlerFoundException;
 
 import dream.flying.flower.enums.TipEnum;
 import dream.flying.flower.enums.TipFormatEnum;
+import dream.flying.flower.framework.core.constant.ConstConfigPreix;
 import dream.flying.flower.framework.web.helper.WebHelpers;
 import dream.flying.flower.result.Result;
 import dream.flying.flower.result.ResultException;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -35,17 +38,21 @@ import lombok.extern.slf4j.Slf4j;
  * @date 2022-12-22 11:29:00
  * @git {@link https://github.com/dreamFlyingFlower }
  */
-@RestControllerAdvice
-@AutoConfiguration
-@ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.SERVLET)
-@ConditionalOnProperty(prefix = "dream.global-exception", value = "enabled", matchIfMissing = true)
-@ConditionalOnMissingClass
 @Slf4j
+@AllArgsConstructor
+@AutoConfiguration
+@ConditionalOnWebApplication
+@ConditionalOnProperty(prefix = ConstConfigPreix.GLOBAL_EXCEPTION, value = ConstConfigPreix.ENABLED,
+		matchIfMissing = true)
+@ConditionalOnMissingClass
+@RestControllerAdvice
 public class GlobalExceptionAutoConfiguration {
+
+	private final MessageSource messageSource;
 
 	@ExceptionHandler(Throwable.class)
 	public Result<?> handleException(Throwable throwable) {
-		log.error(WebHelpers.getRequest().getRequestURL().toString(), throwable.getMessage());
+		log.error("接口{}调用失败:{}", WebHelpers.getRequest().getRequestURL().toString(), throwable.getMessage());
 
 		// 接口不存在异常
 		if (throwable instanceof NoHandlerFoundException) {
