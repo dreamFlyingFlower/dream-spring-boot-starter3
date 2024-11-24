@@ -7,8 +7,8 @@ import org.springframework.context.MessageSource;
 import org.springframework.context.support.ResourceBundleMessageSource;
 import org.springframework.stereotype.Component;
 
-import dream.flying.flower.lang.StrHelper;
-import dream.flying.flower.result.ResultException;
+import dream.flying.flower.enums.TipEnum;
+import dream.flying.flower.enums.TipFormatEnum;
 
 /**
  * 国际化配置使用,自动配置类{@link MessageSourceAutoConfiguration},Spring组件中可以直接注入{@link MessageSource}使用
@@ -32,51 +32,55 @@ public class MessageSourceHelpers {
 		MessageSourceHelpers.messageSource = messageSource;
 	}
 
-	private static void assertNull(String msg) {
-		if (StrHelper.isBlank(msg)) {
-			throw new ResultException(getMessage("", "提示消息不能为空"));
-		}
-	}
-
 	public static String getMessage(String code) {
-		String message = messageSource.getMessage(code, null, Locale.getDefault());
-		assertNull(message);
-		return message;
+		return messageSource.getMessage(code, null, Locale.getDefault());
 	}
 
 	public static String getMessage(String code, Object... args) {
-		String message = messageSource.getMessage(code, args, Locale.getDefault());
-		assertNull(message);
-		return message;
+		return messageSource.getMessage(code, args, Locale.getDefault());
 	}
 
 	public static String getMessage(String code, Locale locale, Object... args) {
-		String message = messageSource.getMessage(code, args, locale);
-		assertNull(message);
-		return message;
+		return messageSource.getMessage(code, args, locale);
 	}
 
 	public static String getMessage(String code, String defaultMessage) {
-		String message = messageSource.getMessage(code, null, defaultMessage, Locale.getDefault());
-		assertNull(message);
-		return message;
+		return messageSource.getMessage(code, null, defaultMessage, Locale.getDefault());
 	}
 
 	public static String getMessage(String code, String defaultMessage, Locale locale) {
-		String message = messageSource.getMessage(code, null, defaultMessage, locale);
-		assertNull(message);
-		return message;
+		return messageSource.getMessage(code, null, defaultMessage, locale);
 	}
 
 	public static String getMessage(String code, String defaultMessage, Object... args) {
-		String message = messageSource.getMessage(code, args, defaultMessage, Locale.getDefault());
-		assertNull(message);
-		return message;
+		return messageSource.getMessage(code, args, defaultMessage, Locale.getDefault());
 	}
 
 	public static String getMessage(String code, String defaultMessage, Locale locale, Object... args) {
-		String message = messageSource.getMessage(code, args, defaultMessage, locale);
-		assertNull(message);
-		return message;
+		return messageSource.getMessage(code, args, defaultMessage, locale);
+	}
+
+	public static String getMessage(TipEnum tipEnum) {
+		return messageSource.getMessage(tipEnum.getKey(), null, tipEnum.getMsg(), Locale.getDefault());
+	}
+
+	public static String getMessage(TipEnum tipEnum, Locale locale) {
+		return messageSource.getMessage(tipEnum.getKey(), null, tipEnum.getMsg(), locale);
+	}
+
+	public static String getMessage(TipFormatEnum tipFormatEnum, Object... args) {
+		return messageSource.getMessage(tipFormatEnum.getKey(), args, Locale.getDefault());
+	}
+
+	public static String getMessage(TipFormatEnum tipFormatEnum, Locale locale, Object... args) {
+		return messageSource.getMessage(tipFormatEnum.getKey(), args, locale);
+	}
+
+	public static String getMessage(TipFormatEnum tipFormatEnum, String defaultMessage, Object... args) {
+		return messageSource.getMessage(tipFormatEnum.getKey(), args, defaultMessage, Locale.getDefault());
+	}
+
+	public static String getMessage(TipFormatEnum tipFormatEnum, String defaultMessage, Locale locale, Object... args) {
+		return messageSource.getMessage(tipFormatEnum.getKey(), args, defaultMessage, locale);
 	}
 }
