@@ -2,10 +2,10 @@ package dream.flying.flower.autoconfigure.captcha;
 
 import java.io.IOException;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Properties;
 
 import org.springframework.boot.autoconfigure.AutoConfiguration;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.io.Resource;
@@ -16,19 +16,26 @@ import com.google.code.kaptcha.impl.DefaultKaptcha;
 import com.google.code.kaptcha.util.Config;
 
 import dream.flying.flower.autoconfigure.captcha.properties.DreamCaptchaProperties;
+import dream.flying.flower.framework.core.constant.ConstConfigPreix;
 import dream.flying.flower.helper.ConvertHepler;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @AutoConfiguration
 @EnableConfigurationProperties(DreamCaptchaProperties.class)
+@ConditionalOnProperty(prefix = ConstConfigPreix.CAPTCHA, value = ConstConfigPreix.ENABLED, matchIfMissing = true)
 public class CaptchaAutoConfiguration {
 
 	@Bean
-	Producer captchaProducer(DreamCaptchaProperties dreamCaptchaProperties) throws IOException {
+	Producer captchaProducer(DreamCaptchaProperties dreamCaptchaProperties) {
 		Properties properties = null;
-		if (null != dreamCaptchaProperties.getSource()) {
-			properties = loadProperties(dreamCaptchaProperties.getSource());
+		if (null != dreamCaptchaProperties.getResourceUrl()) {
+			try {
+				properties = loadProperties(dreamCaptchaProperties.getResourceUrl());
+			} catch (IOException e) {
+				e.printStackTrace();
+				log.error("读取captcha资源文件失败!");
+			}
 		}
 
 		if (null == properties) {
@@ -55,55 +62,50 @@ public class CaptchaAutoConfiguration {
 
 	private Properties convert(DreamCaptchaProperties dreamCaptchaProperties) {
 		Properties properties = new Properties();
-		properties.setProperty(Constants.KAPTCHA_BORDER, ConvertHepler.toStr(dreamCaptchaProperties.getBorder()));
-		properties.setProperty(Constants.KAPTCHA_BORDER_COLOR, dreamCaptchaProperties.getBorderColor());
-		properties.setProperty(Constants.KAPTCHA_BORDER_THICKNESS, dreamCaptchaProperties.getBorderThickness());
+		setProperty(properties, Constants.KAPTCHA_BORDER, dreamCaptchaProperties.getBorder());
+		setProperty(properties, Constants.KAPTCHA_BORDER_COLOR, dreamCaptchaProperties.getBorderColor());
+		setProperty(properties, Constants.KAPTCHA_BORDER_THICKNESS, dreamCaptchaProperties.getBorderThickness());
+		setProperty(properties, Constants.KAPTCHA_NOISE_COLOR, dreamCaptchaProperties.getNoiseColor());
+		setProperty(properties, Constants.KAPTCHA_NOISE_IMPL, dreamCaptchaProperties.getNoiseImpl());
 
-		properties.setProperty(Constants.KAPTCHA_NOISE_COLOR, dreamCaptchaProperties.getNoiseColor());
-		properties.setProperty(Constants.KAPTCHA_NOISE_IMPL,
-				Objects.isNull(dreamCaptchaProperties.getNoiseImpl()) ? null
-						: dreamCaptchaProperties.getNoiseImpl().getName());
+		setProperty(properties, Constants.KAPTCHA_OBSCURIFICATOR_IMPL, dreamCaptchaProperties.getObscurificatorImpl());
 
-		properties.setProperty(Constants.KAPTCHA_OBSCURIFICATOR_IMPL,
-				Objects.isNull(dreamCaptchaProperties.getObscurificatorImpl()) ? null
-						: dreamCaptchaProperties.getObscurificatorImpl().getName());
+		setProperty(properties, Constants.KAPTCHA_PRODUCER_IMPL, dreamCaptchaProperties.getProducerImpl());
+		setProperty(properties, Constants.KAPTCHA_WORDRENDERER_IMPL, dreamCaptchaProperties.getWordImpl());
 
-		properties.setProperty(Constants.KAPTCHA_PRODUCER_IMPL,
-				Objects.isNull(dreamCaptchaProperties.getProducerImpl()) ? null
-						: dreamCaptchaProperties.getProducerImpl());
-
-		properties.setProperty(Constants.KAPTCHA_TEXTPRODUCER_IMPL,
-				Objects.isNull(dreamCaptchaProperties.getTextproducerImpl()) ? null
-						: dreamCaptchaProperties.getTextproducerImpl().getName());
-
-		properties.setProperty(Constants.KAPTCHA_TEXTPRODUCER_CHAR_STRING,
+		setProperty(properties, Constants.KAPTCHA_TEXTPRODUCER_IMPL, dreamCaptchaProperties.getTextproducerImpl());
+		setProperty(properties, Constants.KAPTCHA_TEXTPRODUCER_CHAR_STRING,
 				dreamCaptchaProperties.getTextproducerCharString());
-		properties.setProperty(Constants.KAPTCHA_TEXTPRODUCER_CHAR_LENGTH,
-				ConvertHepler.toStr(dreamCaptchaProperties.getTextproducerCharLength()));
-
-		properties.setProperty(Constants.KAPTCHA_TEXTPRODUCER_FONT_NAMES,
+		setProperty(properties, Constants.KAPTCHA_TEXTPRODUCER_CHAR_LENGTH,
+				dreamCaptchaProperties.getTextproducerCharLength());
+		setProperty(properties, Constants.KAPTCHA_TEXTPRODUCER_FONT_NAMES,
 				dreamCaptchaProperties.getTextproducerFontNames());
-		properties.setProperty(Constants.KAPTCHA_TEXTPRODUCER_FONT_COLOR,
+		setProperty(properties, Constants.KAPTCHA_TEXTPRODUCER_FONT_COLOR,
 				dreamCaptchaProperties.getTextproducerFontColor());
-		properties.setProperty(Constants.KAPTCHA_TEXTPRODUCER_FONT_SIZE,
-				ConvertHepler.toStr(dreamCaptchaProperties.getTextproducerFontSize()));
-
-		properties.setProperty(Constants.KAPTCHA_TEXTPRODUCER_CHAR_SPACE,
+		setProperty(properties, Constants.KAPTCHA_TEXTPRODUCER_FONT_SIZE,
+				dreamCaptchaProperties.getTextproducerFontSize());
+		setProperty(properties, Constants.KAPTCHA_TEXTPRODUCER_CHAR_SPACE,
 				dreamCaptchaProperties.getTextproducerCharSpace());
 
-		properties.setProperty(Constants.KAPTCHA_WORDRENDERER_IMPL,
-				Objects.isNull(dreamCaptchaProperties.getWordImpl()) ? null
-						: dreamCaptchaProperties.getWordImpl().getName());
+		setProperty(properties, Constants.KAPTCHA_BACKGROUND_IMPL, dreamCaptchaProperties.getBackgroundImpl());
+		setProperty(properties, Constants.KAPTCHA_BACKGROUND_CLR_FROM, dreamCaptchaProperties.getBackgroundClearFrom());
+		setProperty(properties, Constants.KAPTCHA_BACKGROUND_CLR_TO, dreamCaptchaProperties.getBackgroundClearTo());
 
-		properties.setProperty(Constants.KAPTCHA_BACKGROUND_IMPL,
-				Objects.isNull(dreamCaptchaProperties.getBackgroundImpl()) ? null
-						: dreamCaptchaProperties.getBackgroundImpl().getName());
+		setProperty(properties, Constants.KAPTCHA_IMAGE_WIDTH, dreamCaptchaProperties.getImageWidth());
+		setProperty(properties, Constants.KAPTCHA_IMAGE_HEIGHT, dreamCaptchaProperties.getImageHeight());
 
-		properties.setProperty(Constants.KAPTCHA_BACKGROUND_CLR_FROM, dreamCaptchaProperties.getBackgroundClearFrom());
-		properties.setProperty(Constants.KAPTCHA_BACKGROUND_CLR_TO, dreamCaptchaProperties.getBackgroundClearTo());
-
-		properties.setProperty(Constants.KAPTCHA_IMAGE_WIDTH, ConvertHepler.toStr(dreamCaptchaProperties.getBorder()));
-		properties.setProperty(Constants.KAPTCHA_IMAGE_HEIGHT, ConvertHepler.toStr(dreamCaptchaProperties.getBorder()));
 		return properties;
+	}
+
+	private void setProperty(Properties properties, String key, Object value) {
+		if (null != value) {
+			properties.setProperty(key, ConvertHepler.toStr(value));
+		}
+	}
+
+	private void setProperty(Properties properties, String key, Class<?> value) {
+		if (null != value) {
+			properties.setProperty(key, value.getName());
+		}
 	}
 }
