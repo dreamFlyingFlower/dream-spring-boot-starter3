@@ -22,7 +22,7 @@ import org.springframework.web.servlet.NoHandlerFoundException;
 
 import dream.flying.flower.enums.TipEnum;
 import dream.flying.flower.enums.TipFormatEnum;
-import dream.flying.flower.framework.core.constant.ConstConfigPreix;
+import dream.flying.flower.framework.core.constant.ConstConfigPrefix;
 import dream.flying.flower.framework.web.helper.WebHelpers;
 import dream.flying.flower.result.Result;
 import dream.flying.flower.result.ResultException;
@@ -42,7 +42,7 @@ import lombok.extern.slf4j.Slf4j;
 @AllArgsConstructor
 @AutoConfiguration
 @ConditionalOnWebApplication
-@ConditionalOnProperty(prefix = ConstConfigPreix.GLOBAL_EXCEPTION, value = ConstConfigPreix.ENABLED,
+@ConditionalOnProperty(prefix = ConstConfigPrefix.GLOBAL_EXCEPTION, value = ConstConfigPrefix.ENABLED,
 		matchIfMissing = true)
 @ConditionalOnMissingClass
 @RestControllerAdvice

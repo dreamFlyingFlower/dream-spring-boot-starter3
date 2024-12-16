@@ -16,14 +16,14 @@ import com.google.code.kaptcha.impl.DefaultKaptcha;
 import com.google.code.kaptcha.util.Config;
 
 import dream.flying.flower.autoconfigure.captcha.properties.DreamCaptchaProperties;
-import dream.flying.flower.framework.core.constant.ConstConfigPreix;
+import dream.flying.flower.framework.core.constant.ConstConfigPrefix;
 import dream.flying.flower.helper.ConvertHepler;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @AutoConfiguration
 @EnableConfigurationProperties(DreamCaptchaProperties.class)
-@ConditionalOnProperty(prefix = ConstConfigPreix.CAPTCHA, value = ConstConfigPreix.ENABLED, matchIfMissing = true)
+@ConditionalOnProperty(prefix = ConstConfigPrefix.CAPTCHA, value = ConstConfigPrefix.ENABLED, matchIfMissing = true)
 public class CaptchaAutoConfiguration {
 
 	@Bean

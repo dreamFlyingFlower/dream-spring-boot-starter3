@@ -13,7 +13,7 @@ import dream.flying.flower.autoconfigure.captcha.strategy.LightNoise;
 import dream.flying.flower.autoconfigure.captcha.strategy.RandomColorWordRenderer;
 import dream.flying.flower.autoconfigure.captcha.strategy.Ripple;
 import dream.flying.flower.autoconfigure.captcha.strategy.UniqueTextProducer;
-import dream.flying.flower.framework.core.constant.ConstConfigPreix;
+import dream.flying.flower.framework.core.constant.ConstConfigPrefix;
 import lombok.Data;
 
 /**
@@ -24,7 +24,7 @@ import lombok.Data;
  * @git {@link https://github.com/dreamFlyingFlower}
  */
 @Data
-@ConfigurationProperties(ConstConfigPreix.CAPTCHA)
+@ConfigurationProperties(ConstConfigPrefix.CAPTCHA)
 public class DreamCaptchaProperties {
 
 	private boolean enabled;
