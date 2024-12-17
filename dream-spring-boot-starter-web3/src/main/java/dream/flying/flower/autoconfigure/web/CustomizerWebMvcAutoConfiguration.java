@@ -50,11 +50,11 @@ import dream.flying.flower.framework.web.serial.LongToStringSerializer;
  * @git {@link https://github.com/dreamFlyingFlower }
  */
 @AutoConfiguration
+@ConditionalOnMissingClass
 @EnableConfigurationProperties(SelfWebMvcProperties.class)
 @ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.SERVLET)
 @ConditionalOnProperty(prefix = "dream.web-mvc", value = "enabled", matchIfMissing = true)
-@ConditionalOnMissingClass
-public class SelfWebMvcAutoConfiguration implements WebMvcConfigurer {
+public class CustomizerWebMvcAutoConfiguration implements WebMvcConfigurer {
 
 	private SelfWebMvcProperties selfWebMvcProperties;
 
@@ -62,8 +62,8 @@ public class SelfWebMvcAutoConfiguration implements WebMvcConfigurer {
 
 	private ObjectMapper objectMapper;
 
-	public SelfWebMvcAutoConfiguration(SelfWebMvcProperties selfWebMvcProperties, WebMvcProperties webMvcProperties,
-			ObjectMapper objectMapper) {
+	public CustomizerWebMvcAutoConfiguration(SelfWebMvcProperties selfWebMvcProperties,
+			WebMvcProperties webMvcProperties, ObjectMapper objectMapper) {
 		this.selfWebMvcProperties = selfWebMvcProperties;
 		this.webMvcProperties = webMvcProperties;
 		this.objectMapper = objectMapper;
@@ -157,7 +157,8 @@ public class SelfWebMvcAutoConfiguration implements WebMvcConfigurer {
 	// @Override
 	// public void addResourceHandlers(ResourceHandlerRegistry registry) {
 	// // 支持swagger2资源库
-	// registry.setOrder(Ordered.HIGHEST_PRECEDENCE).addResourceHandler("doc.html", "swagger-ui.html")
+	// registry.setOrder(Ordered.HIGHEST_PRECEDENCE).addResourceHandler("doc.html",
+	// "swagger-ui.html")
 	// .addResourceLocations("classpath:/META-INF/resources/");
 	// registry.setOrder(Ordered.HIGHEST_PRECEDENCE).addResourceHandler("/webjars/**")
 	// .addResourceLocations("classpath:/META-INF/resources/webjars/");
@@ -175,7 +176,11 @@ public class SelfWebMvcAutoConfiguration implements WebMvcConfigurer {
 	 */
 	@Override
 	public void addCorsMappings(CorsRegistry registry) {
-		registry.addMapping("/**").allowedOriginPatterns("*").allowCredentials(true).exposedHeaders("X-Auth-Token")
-				.allowedMethods("*").maxAge(3600);
+		registry.addMapping("/**")
+				.allowedOriginPatterns("*")
+				.allowCredentials(true)
+				.exposedHeaders("X-Auth-Token")
+				.allowedMethods("*")
+				.maxAge(3600);
 	}
 }

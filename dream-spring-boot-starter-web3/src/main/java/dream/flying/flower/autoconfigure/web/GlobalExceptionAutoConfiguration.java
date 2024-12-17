@@ -39,13 +39,13 @@ import lombok.extern.slf4j.Slf4j;
  * @git {@link https://github.com/dreamFlyingFlower }
  */
 @Slf4j
-@AllArgsConstructor
 @AutoConfiguration
-@ConditionalOnWebApplication
-@ConditionalOnProperty(prefix = ConstConfigPrefix.GLOBAL_EXCEPTION, value = ConstConfigPrefix.ENABLED,
-		matchIfMissing = true)
-@ConditionalOnMissingClass
+@AllArgsConstructor
 @RestControllerAdvice
+@ConditionalOnMissingClass
+@ConditionalOnWebApplication
+@ConditionalOnProperty(prefix = ConstConfigPrefix.AUTO_GLOBAL_EXCEPTION, value = ConstConfigPrefix.ENABLED,
+		matchIfMissing = true)
 public class GlobalExceptionAutoConfiguration {
 
 	private final MessageSource messageSource;

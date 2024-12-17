@@ -23,7 +23,8 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @AutoConfiguration
 @EnableConfigurationProperties(DreamCaptchaProperties.class)
-@ConditionalOnProperty(prefix = ConstConfigPrefix.CAPTCHA, value = ConstConfigPrefix.ENABLED, matchIfMissing = true)
+@ConditionalOnProperty(prefix = ConstConfigPrefix.AUTO_CAPTCHA, value = ConstConfigPrefix.ENABLED,
+		matchIfMissing = true)
 public class CaptchaAutoConfiguration {
 
 	@Bean
