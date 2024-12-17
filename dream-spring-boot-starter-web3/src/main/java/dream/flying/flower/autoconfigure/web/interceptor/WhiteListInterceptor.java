@@ -1,18 +1,16 @@
 package dream.flying.flower.autoconfigure.web.interceptor;
 
-import java.io.IOException;
-import java.io.PrintWriter;
-
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.web.servlet.HandlerInterceptor;
 
 import dream.flying.flower.autoconfigure.web.properties.WhiteListProperties;
-import dream.flying.flower.framework.core.json.JsonHelpers;
+import dream.flying.flower.autoconfigure.web.whitelist.WhiteListHandler;
 import dream.flying.flower.framework.web.helper.IpHelpers;
-import dream.flying.flower.result.Result;
+import dream.flying.flower.framework.web.helper.WebHelpers;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * 白名单拦截器
@@ -21,43 +19,27 @@ import lombok.AllArgsConstructor;
  * @date 2024-12-17 14:05:26
  * @git {@link https://github.com/dreamFlyingFlower}
  */
+@Slf4j
 @AllArgsConstructor
 @EnableConfigurationProperties(WhiteListProperties.class)
 public class WhiteListInterceptor implements HandlerInterceptor {
 
-	private WhiteListProvider whiteListProvider;
-
-	private WhiteListProperties whiteListProperties;
+	private WhiteListHandler whiteListHandler;
 
 	@Override
 	public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)
 			throws Exception {
-		if (!whiteListProperties.getEnabled()) {
+		if (!whiteListHandler.enabled()) {
 			return true;
 		}
-		String ipAddr = IpHelpers.getIp(request);
-		boolean whiteListByIp = whiteListProvider.getWhiteListByIp(ipAddr);
-		if (whiteListByIp) {
+		String ip = IpHelpers.getIp(request);
+		boolean yes = whiteListHandler.whiteList(ip);
+		if (yes) {
 			return true;
 		} else {
-			result(response, JsonHelpers.toString(Result.build("IP不在白名单内", ResultCodeEnum.ERROR)));
+			log.error("ip:{}不在白名单中!", ip);
+			WebHelpers.writeError(response, "IP不在白名单内");
 			return false;
-		}
-	}
-
-	private void result(HttpServletResponse response, String result) {
-		PrintWriter writer = null;
-		response.setCharacterEncoding("UTF-8");
-		response.setContentType("text/html; charset=utf-8");
-		try {
-			writer = response.getWriter();
-			writer.println(result);
-		} catch (IOException e) {
-			e.printStackTrace();
-		} finally {
-			if (writer != null) {
-				writer.close();
-			}
 		}
 	}
 }

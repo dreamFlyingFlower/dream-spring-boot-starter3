@@ -1,17 +1,24 @@
 package dream.flying.flower.autoconfigure.web;
 
+import java.util.Map;
+import java.util.Map.Entry;
+
+import org.apache.commons.collections4.MapUtils;
+import org.springframework.beans.BeansException;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.annotation.Bean;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import dream.flying.flower.autoconfigure.web.interceptor.WhiteListInterceptor;
 import dream.flying.flower.autoconfigure.web.properties.WhiteListProperties;
+import dream.flying.flower.autoconfigure.web.whitelist.MemoryWhiteListHandler;
+import dream.flying.flower.autoconfigure.web.whitelist.WhiteListHandler;
 import dream.flying.flower.framework.core.constant.ConstConfigPrefix;
 
 /**
@@ -26,24 +33,33 @@ import dream.flying.flower.framework.core.constant.ConstConfigPrefix;
 @EnableConfigurationProperties(WhiteListProperties.class)
 @ConditionalOnProperty(prefix = ConstConfigPrefix.AUTO_WHITE_LIST, value = ConstConfigPrefix.ENABLED,
 		matchIfMissing = true)
-public class WhiteListAutoConfiguration implements WebMvcConfigurer {
+public class WhiteListAutoConfiguration implements WebMvcConfigurer, ApplicationContextAware {
 
 	private WhiteListProperties whiteListProperties;
 
-	private ObjectMapper objectMapper;
+	private ApplicationContext applicationContext;
 
-	public WhiteListAutoConfiguration(WhiteListProperties whiteListProperties, ObjectMapper objectMapper) {
+	public WhiteListAutoConfiguration(WhiteListProperties whiteListProperties) {
 		this.whiteListProperties = whiteListProperties;
-		this.objectMapper = objectMapper;
 	}
 
 	@Bean
 	WhiteListInterceptor whiteListInterceptor() {
-		return new WhiteListInterceptor();
+		Map<String, WhiteListHandler> mapWhiteListHandler = applicationContext.getBeansOfType(WhiteListHandler.class);
+		if (MapUtils.isEmpty(mapWhiteListHandler)) {
+			return new WhiteListInterceptor(new MemoryWhiteListHandler(whiteListProperties));
+		}
+		Entry<String, WhiteListHandler> entry = mapWhiteListHandler.entrySet().iterator().next();
+		return new WhiteListInterceptor(entry.getValue());
 	}
 
 	@Override
 	public void addInterceptors(InterceptorRegistry registry) {
 		registry.addInterceptor(whiteListInterceptor());
+	}
+
+	@Override
+	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+		this.applicationContext = applicationContext;
 	}
 }

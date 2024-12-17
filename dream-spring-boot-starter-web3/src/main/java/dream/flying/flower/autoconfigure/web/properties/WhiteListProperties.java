@@ -1,5 +1,7 @@
 package dream.flying.flower.autoconfigure.web.properties;
 
+import java.util.List;
+
 import lombok.Data;
 
 /**
@@ -13,4 +15,18 @@ import lombok.Data;
 public class WhiteListProperties {
 
 	private Boolean enabled;
+
+	/**
+	 * 白名单列表
+	 * 
+	 * @return List<String>
+	 */
+	private List<String> whiteLists;
+
+	/**
+	 * 黑名单列表
+	 * 
+	 * @return List<String>
+	 */
+	private List<String> blackLists;
 }
