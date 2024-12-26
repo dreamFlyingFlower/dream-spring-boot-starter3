@@ -26,10 +26,10 @@ import org.springframework.web.multipart.MultipartFile;
 
 import dream.flying.flower.enums.ResponseEnum;
 import dream.flying.flower.framework.core.json.JsonHelpers;
-import dream.flying.flower.framework.web.entity.OperateLog;
 import dream.flying.flower.framework.web.handler.OperateLogHandler;
 import dream.flying.flower.framework.web.helper.IpHelpers;
 import dream.flying.flower.framework.web.helper.WebHelpers;
+import dream.flying.flower.framework.web.model.OperateLog;
 import dream.flying.flower.lang.StrHelper;
 import dream.flying.flower.logger.BusinessType;
 import dream.flying.flower.logger.Logger;
