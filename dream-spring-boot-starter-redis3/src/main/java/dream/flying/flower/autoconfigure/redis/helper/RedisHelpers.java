@@ -432,7 +432,7 @@ public class RedisHelpers {
 	 * @param key key
 	 */
 	public void setExpire(String key) {
-		redisTemplate.expire(key, Duration.ofSeconds(ConstRedis.DEFAULT_EXPIRE_TIMEOUT));
+		redisTemplate.expire(key, ConstRedis.DEFAULT_TIMEOUT);
 	}
 
 	/**
@@ -473,7 +473,7 @@ public class RedisHelpers {
 	 * @param value value
 	 */
 	public void setExpire(String key, Object value) {
-		setExpire(key, value, ConstRedis.DEFAULT_EXPIRE_TIMEOUT);
+		setExpire(key, value, ConstRedis.DEFAULT_TIMEOUT_SECOND);
 	}
 
 	/**
@@ -518,7 +518,7 @@ public class RedisHelpers {
 	 * @return true->成功,false->失败
 	 */
 	public boolean setExpire(RedisOperations<String, ?> redisOperations, String key) {
-		return setExpire(redisOperations, key, ConstRedis.DEFAULT_EXPIRE_TIMEOUT);
+		return setExpire(redisOperations, key, ConstRedis.DEFAULT_TIMEOUT_SECOND);
 	}
 
 	/**
@@ -577,7 +577,7 @@ public class RedisHelpers {
 	 * @param value value
 	 */
 	public <T> void setJsonExpire(String key, T value) {
-		setJsonExpire(key, value, ConstRedis.DEFAULT_EXPIRE_TIMEOUT);
+		setJsonExpire(key, value, ConstRedis.DEFAULT_TIMEOUT_SECOND);
 	}
 
 	/**
@@ -649,7 +649,7 @@ public class RedisHelpers {
 	 * @param values values
 	 */
 	public void setListLeftExpire(String key, List<Object> values) {
-		setListLeftExpire(key, values, ConstRedis.DEFAULT_EXPIRE_TIMEOUT);
+		setListLeftExpire(key, values, ConstRedis.DEFAULT_TIMEOUT_SECOND);
 	}
 
 	/**
@@ -703,7 +703,7 @@ public class RedisHelpers {
 	 * @param values values
 	 */
 	public void setListRightExpire(String key, List<Object> values) {
-		setListRightExpire(key, values, ConstRedis.DEFAULT_EXPIRE_TIMEOUT);
+		setListRightExpire(key, values, ConstRedis.DEFAULT_TIMEOUT_SECOND);
 	}
 
 	/**
@@ -758,7 +758,7 @@ public class RedisHelpers {
 	 * @param values 一个map对象
 	 */
 	public void setMapExpire(String redisKey, Map<Object, Object> values) {
-		setMapExpire(redisKey, values, ConstRedis.DEFAULT_EXPIRE_TIMEOUT);
+		setMapExpire(redisKey, values, ConstRedis.DEFAULT_TIMEOUT_SECOND);
 	}
 
 	/**
@@ -886,7 +886,7 @@ public class RedisHelpers {
 	 * @return 追加成功的个数
 	 */
 	public Long setSetExpire(String key, Object... values) {
-		return setSetExpire(key, ConstRedis.DEFAULT_EXPIRE_TIMEOUT, values);
+		return setSetExpire(key, ConstRedis.DEFAULT_TIMEOUT_SECOND, values);
 	}
 
 	/**

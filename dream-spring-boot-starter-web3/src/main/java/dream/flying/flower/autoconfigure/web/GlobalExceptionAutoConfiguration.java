@@ -6,7 +6,6 @@ import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
-import org.springframework.context.MessageSource;
 import org.springframework.validation.BindException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
@@ -20,6 +19,7 @@ import org.springframework.web.context.request.async.AsyncRequestTimeoutExceptio
 import org.springframework.web.multipart.support.MissingServletRequestPartException;
 import org.springframework.web.servlet.NoHandlerFoundException;
 
+import dream.flying.flower.autoconfigure.web.helper.MessageSourceHelpers;
 import dream.flying.flower.enums.TipEnum;
 import dream.flying.flower.enums.TipFormatEnum;
 import dream.flying.flower.framework.core.constant.ConstConfigPrefix;
@@ -33,6 +33,8 @@ import lombok.extern.slf4j.Slf4j;
 
 /**
  * 统一异常处理
+ * 
+ * {@link ExceptionHandler}:6.2之后添加了produces属性,可指定请求头类型,利用该属性,可在不同情况下返回JSON或视图
  *
  * @author 飞花梦影
  * @date 2022-12-22 11:29:00
@@ -47,8 +49,6 @@ import lombok.extern.slf4j.Slf4j;
 @ConditionalOnProperty(prefix = ConstConfigPrefix.AUTO_GLOBAL_EXCEPTION, value = ConstConfigPrefix.ENABLED,
 		matchIfMissing = true)
 public class GlobalExceptionAutoConfiguration {
-
-	private final MessageSource messageSource;
 
 	@ExceptionHandler(Throwable.class)
 	public Result<?> handleException(Throwable throwable) {
@@ -130,7 +130,7 @@ public class GlobalExceptionAutoConfiguration {
 		}
 
 		if (throwable instanceof ResultException) {
-			return Result.error(((ResultException) throwable).getMessage());
+			return Result.error(MessageSourceHelpers.getMessage(((ResultException) throwable).getMessage()));
 		}
 
 		// 自定义异常界面
@@ -139,6 +139,6 @@ public class GlobalExceptionAutoConfiguration {
 		// modelAndView.addObject("msg", e.getMessage());
 		// return modelAndView;
 
-		return Result.error(throwable.getMessage());
+		return Result.error(MessageSourceHelpers.getMessage(throwable.getMessage()));
 	}
 }

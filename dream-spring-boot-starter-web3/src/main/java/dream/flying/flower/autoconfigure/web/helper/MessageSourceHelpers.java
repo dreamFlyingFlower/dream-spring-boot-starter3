@@ -19,6 +19,8 @@ import dream.flying.flower.enums.TipFormatEnum;
  * 
  * 若需要大量的国际化配置文件,放在classpath下是不明智的,可以重写{@link ResourceBundleMessageSource#doGetBundle},从数据库读取配置
  * 
+ * TODO 需要加入Locale判断
+ * 
  * @author 飞花梦影
  * @date 2021-01-28 17:28:20
  * @git {@link https://github.com/dreamFlyingFlower }
