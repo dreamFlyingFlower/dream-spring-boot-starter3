@@ -24,6 +24,7 @@ import org.springframework.util.NumberUtils;
 
 import com.alibaba.fastjson2.JSON;
 
+import dream.flying.flower.ConstDuration;
 import dream.flying.flower.autoconfigure.redis.config.RedisConfig;
 import dream.flying.flower.digest.DigestHelper;
 import dream.flying.flower.framework.core.constant.ConstRedis;
@@ -432,7 +433,7 @@ public class RedisHelpers {
 	 * @param key key
 	 */
 	public void setExpire(String key) {
-		redisTemplate.expire(key, ConstRedis.DEFAULT_TIMEOUT);
+		redisTemplate.expire(key, ConstDuration.MINUTE30);
 	}
 
 	/**

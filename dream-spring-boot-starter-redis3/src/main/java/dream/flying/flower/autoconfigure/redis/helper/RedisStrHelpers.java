@@ -23,6 +23,7 @@ import org.springframework.util.NumberUtils;
 
 import com.alibaba.fastjson2.JSON;
 
+import dream.flying.flower.ConstDuration;
 import dream.flying.flower.digest.DigestHelper;
 import dream.flying.flower.framework.core.constant.ConstRedis;
 import dream.flying.flower.framework.core.enums.RedisKey;
@@ -418,7 +419,7 @@ public class RedisStrHelpers {
 	 * @param key key
 	 */
 	public void setExpire(String key) {
-		stringRedisTemplate.expire(key, ConstRedis.DEFAULT_TIMEOUT);
+		stringRedisTemplate.expire(key, ConstDuration.MINUTE30);
 	}
 
 	/**
