@@ -2,7 +2,9 @@ package dream.flying.flower.logger.logbook;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.springframework.scheduling.annotation.Async;
 import org.zalando.logbook.Correlation;
@@ -14,6 +16,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import dream.flying.flower.logger.entity.HttpRequestLog;
 import dream.flying.flower.logger.mapper.HttpRequestLogMapper;
 import dream.flying.flower.logger.properties.LoggerProperties;
+import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -33,27 +36,45 @@ public class DatabaseHttpLogWriter implements HttpLogWriter {
 	private final LoggerProperties properties;
 
 	private final ObjectMapper objectMapper;
+    
+    // 添加请求信息暂存Map
+    private final Map<String, RequestInfo> requestStorage = new ConcurrentHashMap<>();
 
 	@Async("operationLogExecutor")
 	@Override
 	public void write(final Precorrelation precorrelation, final String request) throws IOException {
-		// 暂存请求信息，等响应回来一起保存
-
+		try {
+            // 存储请求信息
+            RequestInfo requestInfo = new RequestInfo();
+            requestInfo.setRequestTime(LocalDateTime.now());
+            requestInfo.setRequest(request);
+            requestStorage.put(precorrelation.getId(), requestInfo);
+        } catch (Exception e) {
+            log.error("Failed to store request info", e);
+        }
 	}
 
 	@Override
 	public void write(final Correlation correlation, final String response) throws IOException {
 		try {
+            // 获取之前存储的请求信息
+            RequestInfo requestInfo = requestStorage.remove(correlation.getId());
+            if (requestInfo == null) {
+                log.warn("Request info not found for correlation id: {}", correlation.getId());
+                requestInfo = new RequestInfo();
+                requestInfo.setRequestTime(LocalDateTime.now());
+            }
+
 			HttpRequestLog logEntity = HttpRequestLog.builder()
-					.traceId(UUID.randomUUID().toString())
+					.traceId(correlation.getId())
 					.appName(properties.getAppName())
-					.requestTime(LocalDateTime.now())
+					.requestTime(requestInfo.getRequestTime())
 					.responseTime(LocalDateTime.now())
 					.costTime(correlation.getDuration().toMillis())
 					.requestMethod(correlation.getRequest().getMethod())
 					.requestUrl(correlation.getRequest().getPath())
 					.requestHeaders(objectMapper.writeValueAsString(correlation.getRequest().getHeaders()))
-					.requestBody(correlation.getRequest().getBodyAsString())
+					.requestBody(requestInfo.getRequest())
 					.responseStatus(correlation.getResponse().getStatus())
 					.responseHeaders(objectMapper.writeValueAsString(correlation.getResponse().getHeaders()))
 					.responseBody(correlation.getResponse().getBodyAsString())
@@ -63,7 +84,7 @@ public class DatabaseHttpLogWriter implements HttpLogWriter {
 
 			logMapper.insert(logEntity);
 		} catch (Exception e) {
-			log.error("Failed to save HTTP request log", e);
+			log.error("Failed to save HTTP request log for correlation id: {}", correlation.getId(), e);
 		}
 	}
 
@@ -80,4 +101,11 @@ public class DatabaseHttpLogWriter implements HttpLogWriter {
 		}
 		return ip;
 	}
+
+    // 添加请求信息存储类
+    @Data
+    private static class RequestInfo {
+        private LocalDateTime requestTime;
+        private String request;
+    }
 }
