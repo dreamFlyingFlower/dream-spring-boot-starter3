@@ -19,6 +19,7 @@
 		<module>dream-spring-boot-starter-cryption3</module>
 		<module>dream-spring-boot-starter-excel3</module>
 		<module>dream-spring-boot-starter-logger3</module>
+		<module>dream-spring-boot-starter-mybatis-plus3</module>
 		<module>dream-spring-boot-starter-redis3</module>
 		<module>dream-spring-boot-starter-security3</module>
 		<module>dream-spring-boot-starter-storage3</module>
