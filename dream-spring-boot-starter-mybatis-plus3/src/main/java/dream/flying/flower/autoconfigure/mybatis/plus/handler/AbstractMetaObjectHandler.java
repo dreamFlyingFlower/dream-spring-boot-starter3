@@ -28,9 +28,9 @@ import lombok.RequiredArgsConstructor;
  * @git {@link https://github.com/dreamFlyingFlower }
  */
 @RequiredArgsConstructor
-public abstract class MybatisPlusHandler implements MetaObjectHandler {
+public abstract class AbstractMetaObjectHandler implements MetaObjectHandler {
 
-	protected final DreamMybatisPlusProperties mybatisPlusProperties;
+	protected final DreamMybatisPlusProperties dreamMybatisPlusProperties;
 
 	/**
 	 * 插入时的填充策略
@@ -39,7 +39,7 @@ public abstract class MybatisPlusHandler implements MetaObjectHandler {
 	 */
 	@Override
 	public void insertFill(MetaObject metaObject) {
-		Map<String, Object> insertFields = mybatisPlusProperties.getInsertFields();
+		Map<String, Object> insertFields = dreamMybatisPlusProperties.getInsertFields();
 		if (MapHelper.isEmpty(insertFields)) {
 			return;
 		}
@@ -55,7 +55,7 @@ public abstract class MybatisPlusHandler implements MetaObjectHandler {
 	 */
 	@Override
 	public void updateFill(MetaObject metaObject) {
-		Map<String, Object> insertFields = mybatisPlusProperties.getInsertFields();
+		Map<String, Object> insertFields = dreamMybatisPlusProperties.getInsertFields();
 		if (MapHelper.isEmpty(insertFields)) {
 			return;
 		}

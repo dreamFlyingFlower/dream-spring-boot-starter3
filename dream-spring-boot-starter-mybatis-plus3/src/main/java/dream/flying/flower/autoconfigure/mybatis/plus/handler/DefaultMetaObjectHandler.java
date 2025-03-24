@@ -11,13 +11,13 @@ import dream.flying.flower.autoconfigure.mybatis.plus.properties.DreamMybatisPlu
  * @date 2023-01-11 15:33:13
  * @git {@link https://github.com/dreamFlyingFlower }
  */
-public class DefaultMybatisPlusHandler extends MybatisPlusHandler {
+public class DefaultMetaObjectHandler extends AbstractMetaObjectHandler {
 
-	public DefaultMybatisPlusHandler() {
+	public DefaultMetaObjectHandler() {
 		super(new DreamMybatisPlusProperties());
 	}
 
-	public DefaultMybatisPlusHandler(DreamMybatisPlusProperties mybatisPlusProperties) {
-		super(mybatisPlusProperties);
+	public DefaultMetaObjectHandler(DreamMybatisPlusProperties dreamMybatisPlusProperties) {
+		super(dreamMybatisPlusProperties);
 	}
 }

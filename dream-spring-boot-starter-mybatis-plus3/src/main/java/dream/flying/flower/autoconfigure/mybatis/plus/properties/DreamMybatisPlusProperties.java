@@ -46,4 +46,14 @@ public class DreamMybatisPlusProperties {
 			put("updateTime", new Date());
 		}
 	};
+
+	/**
+	 * 是否开启乐观锁拦截器
+	 */
+	private boolean enableOptimisticLocker = false;
+
+	/**
+	 * 是否开启防止全表更新与删除拦截器
+	 */
+	private boolean enableBlockAttack = true;
 }
