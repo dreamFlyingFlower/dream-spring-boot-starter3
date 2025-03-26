@@ -15,15 +15,15 @@
 	<description>Project for SpringBoot3 starter</description>
 
 	<modules>
-		<module>dream-spring-boot-starter-captcha3</module>
-		<module>dream-spring-boot-starter-cryption3</module>
-		<module>dream-spring-boot-starter-excel3</module>
-		<module>dream-spring-boot-starter-logger3</module>
-		<module>dream-spring-boot-starter-mybatis-plus3</module>
-		<module>dream-spring-boot-starter-redis3</module>
-		<module>dream-spring-boot-starter-security3</module>
-		<module>dream-spring-boot-starter-storage3</module>
-		<module>dream-spring-boot-starter-web3</module>
+		<module>dream-captcha3-spring-boot-starter</module>
+		<module>dream-cryption3-spring-boot-starter</module>
+		<module>dream-excel3-spring-boot-starter</module>
+		<module>dream-logger3-spring-boot-starter</module>
+		<module>dream-mybatis-plus3-spring-boot-starter</module>
+		<module>dream-redis3-spring-boot-starter</module>
+		<module>dream-security3-spring-boot-starter</module>
+		<module>dream-storage3-spring-boot-starter</module>
+		<module>dream-web3-spring-boot-starter</module>
 	</modules>
 
 </project>
