@@ -21,7 +21,7 @@ import dream.flying.flower.autoconfigure.logger.aspect.ControllerLogAspect;
 import dream.flying.flower.autoconfigure.logger.aspect.OperationLogAspect;
 import dream.flying.flower.autoconfigure.logger.config.AsyncConfig;
 import dream.flying.flower.autoconfigure.logger.processor.FlywayPropertiesBeanProcessor;
-import dream.flying.flower.autoconfigure.logger.properties.LoggerProperties;
+import dream.flying.flower.autoconfigure.logger.properties.DreamLoggerProperties;
 import dream.flying.flower.autoconfigure.logger.service.OperationLogService;
 import dream.flying.flower.autoconfigure.logger.service.impl.OperationLogServiceImpl;
 import dream.flying.flower.framework.core.constant.ConstConfigPrefix;
@@ -33,8 +33,8 @@ import dream.flying.flower.framework.core.constant.ConstConfigPrefix;
  * @date 2024-01-06 15:30:45
  * @since 1.0.0
  */
-@EnableConfigurationProperties({ LoggerProperties.class })
 @AutoConfiguration(before = { LogbookAutoConfiguration.class })
+@EnableConfigurationProperties({ DreamLoggerProperties.class })
 @MapperScan("dream.flying.flower.autoconfigure.logger.mapper")
 @Import({ AsyncConfig.class, FlywayPropertiesBeanProcessor.class })
 @ConditionalOnProperty(prefix = ConstConfigPrefix.AUTO_LOGGER, name = ConstConfigPrefix.ENABLED, havingValue = "true",
@@ -49,15 +49,16 @@ public class OperationLogAutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean(OperationLogAspect.class)
-	OperationLogAspect operationLogAspect(LoggerProperties loggerProperties, OperationLogService operationLogService) {
-		return new OperationLogAspect(loggerProperties, operationLogService);
+	OperationLogAspect operationLogAspect(ApplicationContext applicationContext,
+			OperationLogService operationLogService, DreamLoggerProperties dreamLoggerProperties) {
+		return new OperationLogAspect(applicationContext, operationLogService, dreamLoggerProperties);
 	}
 
 	@Bean
 	@ConditionalOnMissingBean(ControllerLogAspect.class)
-	ControllerLogAspect controllerLogAspect(LoggerProperties loggerProperties, OperationLogService operationLogService,
-			ApplicationContext applicationContext) {
-		return new ControllerLogAspect(loggerProperties, operationLogService, applicationContext);
+	ControllerLogAspect controllerLogAspect(ApplicationContext applicationContext,
+			OperationLogService operationLogService, DreamLoggerProperties dreamLoggerProperties) {
+		return new ControllerLogAspect(applicationContext, operationLogService, dreamLoggerProperties);
 	}
 
 	@Bean
@@ -67,6 +68,7 @@ public class OperationLogAutoConfiguration {
 		if (!environment.containsProperty("logging.level.org.zalando.logbook")) {
 			loggingSystem.setLogLevel("org.zalando.logbook", LogLevel.TRACE);
 		}
+		// 输出到控制台的日志
 		return new DefaultSink(new DefaultHttpLogFormatter(), new DefaultHttpLogWriter());
 	}
 }

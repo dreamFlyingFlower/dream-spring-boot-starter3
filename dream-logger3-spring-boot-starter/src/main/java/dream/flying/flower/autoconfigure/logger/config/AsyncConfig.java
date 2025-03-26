@@ -8,7 +8,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
-import dream.flying.flower.autoconfigure.logger.properties.LoggerProperties;
+import dream.flying.flower.autoconfigure.logger.properties.DreamLoggerProperties;
 import lombok.RequiredArgsConstructor;
 
 /**
@@ -21,10 +21,10 @@ import lombok.RequiredArgsConstructor;
 @EnableAsync
 @Configuration
 @RequiredArgsConstructor
-@EnableConfigurationProperties(LoggerProperties.class)
+@EnableConfigurationProperties(DreamLoggerProperties.class)
 public class AsyncConfig {
 
-	private final LoggerProperties properties;
+	private final DreamLoggerProperties properties;
 
 	@Bean("operationLogExecutor")
 	Executor operationLogExecutor() {

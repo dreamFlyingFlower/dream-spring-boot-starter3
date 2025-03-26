@@ -18,7 +18,7 @@ import lombok.Data;
  */
 @Data
 @ConfigurationProperties(prefix = ConstConfigPrefix.AUTO_LOGGER)
-public class LoggerProperties {
+public class DreamLoggerProperties {
 
 	/**
 	 * 是否启用日志记录

@@ -11,7 +11,7 @@ import org.springframework.context.annotation.Configuration;
 import org.zalando.logbook.CorrelationId;
 import org.zalando.logbook.Origin;
 
-import dream.flying.flower.autoconfigure.logger.properties.LoggerProperties;
+import dream.flying.flower.autoconfigure.logger.properties.DreamLoggerProperties;
 import lombok.RequiredArgsConstructor;
 
 /**
@@ -23,7 +23,7 @@ import lombok.RequiredArgsConstructor;
  */
 @Configuration
 @RequiredArgsConstructor
-@EnableConfigurationProperties(LoggerProperties.class)
+@EnableConfigurationProperties(DreamLoggerProperties.class)
 public class LoggerConfig {
 
 	@Bean

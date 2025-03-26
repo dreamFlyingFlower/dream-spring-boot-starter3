@@ -87,7 +87,7 @@ public class OperationLogEntity extends AbstractEntity {
 	@TableField(condition = SqlCondition.LIKE)
 	private String errorMsg;
 
-	private String userId;
+	private Long userId;
 
 	@TableField(condition = SqlCondition.LIKE)
 	private String username;

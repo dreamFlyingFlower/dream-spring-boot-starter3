@@ -12,7 +12,7 @@ import org.zalando.logbook.Precorrelation;
 import org.zalando.logbook.Sink;
 
 import dream.flying.flower.autoconfigure.logger.entity.OperationLogEntity;
-import dream.flying.flower.autoconfigure.logger.properties.LoggerProperties;
+import dream.flying.flower.autoconfigure.logger.properties.DreamLoggerProperties;
 import dream.flying.flower.autoconfigure.logger.service.OperationLogService;
 import dream.flying.flower.framework.core.helper.IpHelpers;
 import dream.flying.flower.framework.core.json.JsonHelpers;
@@ -31,7 +31,7 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class DatabaseSink implements Sink {
 
-	private final LoggerProperties loggerProperties;
+	private final DreamLoggerProperties loggerProperties;
 
 	private final OperationLogService operationLogService;
 
