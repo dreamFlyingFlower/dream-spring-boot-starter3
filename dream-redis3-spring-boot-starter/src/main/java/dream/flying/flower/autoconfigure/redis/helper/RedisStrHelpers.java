@@ -27,7 +27,7 @@ import dream.flying.flower.ConstDuration;
 import dream.flying.flower.digest.DigestHelper;
 import dream.flying.flower.framework.core.constant.ConstRedis;
 import dream.flying.flower.framework.core.enums.RedisKey;
-import dream.flying.flower.framework.core.json.FastjsonHelpers;
+import dream.flying.flower.framework.json.FastjsonHelpers;
 import lombok.extern.slf4j.Slf4j;
 
 /**

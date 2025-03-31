@@ -18,7 +18,7 @@ import lombok.Data;
  */
 @Data
 @ConfigurationProperties(prefix = ConstConfigPrefix.AUTO_LOGGER)
-public class DreamLoggerProperties {
+public class DreamLogProperties {
 
 	/**
 	 * 是否启用日志记录
@@ -36,9 +36,14 @@ public class DreamLoggerProperties {
 	private List<String> scanPackages = new ArrayList<>();
 
 	/**
-	 * 是否异步记录日志
+	 * 需要过滤的参数类型
 	 */
-	private boolean async = true;
+	private List<Class<?>> excludeParamTypes;
+
+	/**
+	 * 需要过滤的敏感参数名
+	 */
+	private List<String> excludeParamNames;
 
 	/**
 	 * 异步线程池核心线程数

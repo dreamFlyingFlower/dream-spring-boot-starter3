@@ -4,12 +4,10 @@ import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Pointcut;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.context.ApplicationContext;
+import org.slf4j.MDC;
 
-import dream.flying.flower.autoconfigure.logger.properties.DreamLoggerProperties;
-import dream.flying.flower.autoconfigure.logger.service.OperationLogService;
-import dream.flying.flower.autoconfigure.logger.support.AbstractAspectLoggerHandler;
+import dream.flying.flower.autoconfigure.logger.support.LogAspectHandler;
+import lombok.RequiredArgsConstructor;
 
 /**
  * 控制层日志切面类,拦截带有RestController和Controller注解的方法,记录方法的调用信息,包括请求参数、响应结果、执行时间等
@@ -19,20 +17,21 @@ import dream.flying.flower.autoconfigure.logger.support.AbstractAspectLoggerHand
  * @git {@link https://github.com/dreamFlyingFlower}
  */
 @Aspect
-@EnableConfigurationProperties(DreamLoggerProperties.class)
-public class ControllerLogAspect extends AbstractAspectLoggerHandler {
+@RequiredArgsConstructor
+public class ControllerLogAspect {
 
-	public ControllerLogAspect(ApplicationContext applicationContext, OperationLogService operationLogService,
-			DreamLoggerProperties dreamLoggerProperties) {
-		super(applicationContext, operationLogService, dreamLoggerProperties);
-	}
+	private final LogAspectHandler logAspectHandler;
 
-	@Pointcut("within(@org.springframework.web.bind.annotation.RestController *) || within(@org.springframework.stereotype.Controller *)")
+	/**
+	 * 切面.注意,若子类标注了注解,但是实际调用的是父类方法,父类未标注注解,无法拦截
+	 */
+	@Pointcut("@within(org.springframework.web.bind.annotation.RestController) || @within(org.springframework.stereotype.Controller)")
 	public void controllerPointcut() {
 	}
 
 	@Around("controllerPointcut()")
-	public Object doLogger(ProceedingJoinPoint point) throws Throwable {
-		return super.doLogger(point, null);
+	public Object logAspect(ProceedingJoinPoint point) throws Throwable {
+		MDC.put(LogAspectHandler.MDC_TRACT_ID_KEY, LogAspectHandler.getTraceId());
+		return logAspectHandler.doLogAspect(point, null);
 	}
 }

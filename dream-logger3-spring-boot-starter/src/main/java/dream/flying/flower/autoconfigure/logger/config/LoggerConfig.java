@@ -5,13 +5,11 @@ import java.util.UUID;
 import org.apiguardian.api.API;
 import org.apiguardian.api.API.Status;
 import org.slf4j.MDC;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.zalando.logbook.CorrelationId;
 import org.zalando.logbook.Origin;
 
-import dream.flying.flower.autoconfigure.logger.properties.DreamLoggerProperties;
 import lombok.RequiredArgsConstructor;
 
 /**
@@ -23,7 +21,6 @@ import lombok.RequiredArgsConstructor;
  */
 @Configuration
 @RequiredArgsConstructor
-@EnableConfigurationProperties(DreamLoggerProperties.class)
 public class LoggerConfig {
 
 	@Bean

@@ -11,11 +11,12 @@ import org.zalando.logbook.HttpResponse;
 import org.zalando.logbook.Precorrelation;
 import org.zalando.logbook.Sink;
 
+import dream.flying.flower.ConstString;
 import dream.flying.flower.autoconfigure.logger.entity.OperationLogEntity;
-import dream.flying.flower.autoconfigure.logger.properties.DreamLoggerProperties;
+import dream.flying.flower.autoconfigure.logger.properties.DreamLogProperties;
 import dream.flying.flower.autoconfigure.logger.service.OperationLogService;
-import dream.flying.flower.framework.core.helper.IpHelpers;
-import dream.flying.flower.framework.core.json.JsonHelpers;
+import dream.flying.flower.framework.core.constant.ConstNetwork;
+import dream.flying.flower.framework.json.JsonHelpers;
 import dream.flying.flower.lang.StrHelper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -31,7 +32,7 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class DatabaseSink implements Sink {
 
-	private final DreamLoggerProperties loggerProperties;
+	private final DreamLogProperties loggerProperties;
 
 	private final OperationLogService operationLogService;
 
@@ -60,15 +61,15 @@ public class DatabaseSink implements Sink {
 					.responseTime(LocalDateTime.now())
 					.costTime(correlation.getDuration().toMillis())
 					.requestBody(request.getBodyAsString())
-					.requestHeaders(JsonHelpers.toString(request.getHeaders()))
+					.requestHeader(JsonHelpers.toString(request.getHeaders()))
 					.requestMethod(request.getMethod())
 					.requestUrl(request.getRequestUri())
 
 					.responseBody(response.getBodyAsString())
-					.responseHeaders(JsonHelpers.toString(response.getHeaders()))
+					.responseHeader(JsonHelpers.toString(response.getHeaders()))
 					.responseStatus(response.getStatus())
 					.success(1)
-					.clientIp(getIp(request))
+					.requestIp(getIp(request))
 					.createTime(new Date())
 					.build();
 			operationLogService.save(operationLogEntity);
@@ -85,7 +86,7 @@ public class DatabaseSink implements Sink {
 	 */
 	public static String getIp(HttpRequest request) {
 		if (request == null) {
-			return "unknown";
+			return ConstString.UNKNOWN;
 		}
 		// 如果通过了多级反向代理,X-Forwarded-For的值并不止一个,而是一串IP值.取第一个非unknown的有效IP字符串
 		String ip = request.getHeaders().getFirst("x-forwarded-for");
@@ -111,7 +112,27 @@ public class DatabaseSink implements Sink {
 		if (checkIp(ip)) {
 			ip = request.getRemote();
 		}
-		return "0:0:0:0:0:0:0:1".equals(ip) ? "127.0.0.1" : IpHelpers.getMultistageReverseProxyIp(ip);
+		return "0:0:0:0:0:0:0:1".equals(ip) ? ConstNetwork.LOCAL_IP : getMultistageReverseProxyIp(ip);
+	}
+
+	/**
+	 * 从多级反向代理中获得第一个非unknown IP地址
+	 *
+	 * @param ip 获得的IP地址
+	 * @return 第一个非unknown IP地址
+	 */
+	public static String getMultistageReverseProxyIp(String ip) {
+		// 多级反向代理检测
+		if (ip != null && ip.indexOf(",") > 0) {
+			final String[] ips = ip.trim().split(",");
+			for (String subIp : ips) {
+				if (!checkIp(subIp)) {
+					ip = subIp;
+					break;
+				}
+			}
+		}
+		return ip;
 	}
 
 	/**

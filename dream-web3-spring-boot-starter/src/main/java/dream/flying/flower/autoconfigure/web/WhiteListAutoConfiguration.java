@@ -3,7 +3,6 @@ package dream.flying.flower.autoconfigure.web;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import org.apache.commons.collections4.MapUtils;
 import org.springframework.beans.BeansException;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingClass;
@@ -12,6 +11,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.annotation.Bean;
+import org.springframework.util.CollectionUtils;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
@@ -46,7 +46,7 @@ public class WhiteListAutoConfiguration implements WebMvcConfigurer, Application
 	@Bean
 	WhiteListInterceptor whiteListInterceptor() {
 		Map<String, WhiteListHandler> mapWhiteListHandler = applicationContext.getBeansOfType(WhiteListHandler.class);
-		if (MapUtils.isEmpty(mapWhiteListHandler)) {
+		if (CollectionUtils.isEmpty(mapWhiteListHandler)) {
 			return new WhiteListInterceptor(new MemoryWhiteListHandler(whiteListProperties));
 		}
 		Entry<String, WhiteListHandler> entry = mapWhiteListHandler.entrySet().iterator().next();

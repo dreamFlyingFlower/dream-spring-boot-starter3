@@ -7,8 +7,11 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
-import dream.flying.flower.autoconfigure.logger.properties.DreamLoggerProperties;
+import dream.flying.flower.autoconfigure.logger.properties.DreamLogProperties;
+import dream.flying.flower.framework.web.helper.WebHelpers;
 import lombok.RequiredArgsConstructor;
 
 /**
@@ -21,18 +24,30 @@ import lombok.RequiredArgsConstructor;
 @EnableAsync
 @Configuration
 @RequiredArgsConstructor
-@EnableConfigurationProperties(DreamLoggerProperties.class)
+@EnableConfigurationProperties(DreamLogProperties.class)
 public class AsyncConfig {
 
-	private final DreamLoggerProperties properties;
+	private final DreamLogProperties dreamLogProperties;
 
 	@Bean("operationLogExecutor")
 	Executor operationLogExecutor() {
 		ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-		executor.setCorePoolSize(properties.getAsyncCorePoolSize());
-		executor.setMaxPoolSize(properties.getAsyncMaxPoolSize());
-		executor.setQueueCapacity(properties.getAsyncQueueCapacity());
+		executor.setCorePoolSize(dreamLogProperties.getAsyncCorePoolSize());
+		executor.setMaxPoolSize(dreamLogProperties.getAsyncMaxPoolSize());
+		executor.setQueueCapacity(dreamLogProperties.getAsyncQueueCapacity());
 		executor.setThreadNamePrefix("operation-log-");
+		executor.setTaskDecorator(runnable -> {
+			ServletRequestAttributes servletRequestAttributes = WebHelpers.getRequestAttributes();
+			return () -> {
+				RequestContextHolder.setRequestAttributes(servletRequestAttributes);
+				try {
+					runnable.run();
+				} finally {
+					RequestContextHolder.resetRequestAttributes();
+				}
+			};
+		});
+
 		executor.initialize();
 		return executor;
 	}
