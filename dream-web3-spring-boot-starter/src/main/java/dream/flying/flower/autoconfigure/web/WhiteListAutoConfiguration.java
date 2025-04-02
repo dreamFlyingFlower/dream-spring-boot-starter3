@@ -19,7 +19,7 @@ import dream.flying.flower.autoconfigure.web.interceptor.WhiteListInterceptor;
 import dream.flying.flower.autoconfigure.web.properties.WhiteListProperties;
 import dream.flying.flower.autoconfigure.web.whitelist.MemoryWhiteListHandler;
 import dream.flying.flower.autoconfigure.web.whitelist.WhiteListHandler;
-import dream.flying.flower.framework.core.constant.ConstConfigPrefix;
+import dream.flying.flower.framework.core.constant.ConstConfig;
 
 /**
  * 白名单自动配置
@@ -31,8 +31,7 @@ import dream.flying.flower.framework.core.constant.ConstConfigPrefix;
 @AutoConfiguration
 @ConditionalOnMissingClass
 @EnableConfigurationProperties(WhiteListProperties.class)
-@ConditionalOnProperty(prefix = ConstConfigPrefix.AUTO_WHITE_LIST, value = ConstConfigPrefix.ENABLED,
-		matchIfMissing = true)
+@ConditionalOnProperty(prefix = ConstConfig.AUTO_WHITE_LIST, value = ConstConfig.ENABLED, matchIfMissing = true)
 public class WhiteListAutoConfiguration implements WebMvcConfigurer, ApplicationContextAware {
 
 	private WhiteListProperties whiteListProperties;

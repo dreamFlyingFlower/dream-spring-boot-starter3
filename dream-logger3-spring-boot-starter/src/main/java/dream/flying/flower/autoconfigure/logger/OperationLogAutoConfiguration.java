@@ -30,7 +30,7 @@ import dream.flying.flower.autoconfigure.logger.service.OperationLogService;
 import dream.flying.flower.autoconfigure.logger.service.impl.DefaultOperationLogService;
 import dream.flying.flower.autoconfigure.logger.support.DefaultLogAspectHandler;
 import dream.flying.flower.autoconfigure.logger.support.LogAspectHandler;
-import dream.flying.flower.framework.core.constant.ConstConfigPrefix;
+import dream.flying.flower.framework.core.constant.ConstConfig;
 
 /**
  * 操作日志自动配置类 配置日志记录所需的各个组件 包括Logbook配置、异步配置、存储配置等
@@ -53,7 +53,7 @@ import dream.flying.flower.framework.core.constant.ConstConfigPrefix;
 @Import({ AsyncConfig.class, FlywayPropertiesBeanProcessor.class })
 @EnableAspectJAutoProxy(proxyTargetClass = true, exposeProxy = true)
 @AutoConfiguration(before = { LogbookAutoConfiguration.class }, after = { FlywayAutoConfiguration.class })
-@ConditionalOnProperty(prefix = ConstConfigPrefix.AUTO_LOGGER, name = ConstConfigPrefix.ENABLED, havingValue = "true",
+@ConditionalOnProperty(prefix = ConstConfig.AUTO_LOGGER, name = ConstConfig.ENABLED, havingValue = "true",
 		matchIfMissing = true)
 public class OperationLogAutoConfiguration {
 

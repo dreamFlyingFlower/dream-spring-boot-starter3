@@ -14,6 +14,7 @@ import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 import dream.flying.flower.autoconfigure.web.properties.AsyncExecutorProperties;
+import dream.flying.flower.framework.core.constant.ConstConfig;
 
 /**
  * 初始化异步线程池
@@ -22,11 +23,11 @@ import dream.flying.flower.autoconfigure.web.properties.AsyncExecutorProperties;
  * @date 2022-12-21 14:25:23
  * @git {@link https://github.com/dreamFlyingFlower }
  */
-@AutoConfiguration
 @EnableAsync
-@EnableConfigurationProperties({ AsyncExecutorProperties.class })
-@ConditionalOnProperty(prefix = "dream.async-executor", value = "enabled", matchIfMissing = true)
+@AutoConfiguration
 @ConditionalOnMissingClass
+@EnableConfigurationProperties({ AsyncExecutorProperties.class })
+@ConditionalOnProperty(prefix = ConstConfig.AUTO_ASYNC_EXECUTOR, value = ConstConfig.ENABLED, matchIfMissing = true)
 public class AsyncExecutorAutoConfiguration {
 
 	/**

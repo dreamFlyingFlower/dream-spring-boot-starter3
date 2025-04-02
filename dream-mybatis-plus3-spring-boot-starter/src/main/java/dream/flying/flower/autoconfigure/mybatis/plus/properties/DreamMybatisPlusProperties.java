@@ -6,7 +6,7 @@ import java.util.Map;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
-import dream.flying.flower.framework.core.constant.ConstConfigPrefix;
+import dream.flying.flower.framework.core.constant.ConstConfig;
 import lombok.Data;
 
 /**
@@ -17,7 +17,7 @@ import lombok.Data;
  * @git {@link https://gitee.com/dreamFlyingFlower}
  */
 @Data
-@ConfigurationProperties(prefix = ConstConfigPrefix.AUTO_MYBATIS_PLUS)
+@ConfigurationProperties(prefix = ConstConfig.AUTO_MYBATIS_PLUS)
 public class DreamMybatisPlusProperties {
 
 	/**

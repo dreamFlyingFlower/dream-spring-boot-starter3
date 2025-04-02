@@ -22,7 +22,7 @@ import org.springframework.web.servlet.NoHandlerFoundException;
 import dream.flying.flower.autoconfigure.web.helper.MessageSourceHelpers;
 import dream.flying.flower.enums.TipEnum;
 import dream.flying.flower.enums.TipFormatEnum;
-import dream.flying.flower.framework.core.constant.ConstConfigPrefix;
+import dream.flying.flower.framework.core.constant.ConstConfig;
 import dream.flying.flower.framework.web.helper.WebHelpers;
 import dream.flying.flower.result.Result;
 import dream.flying.flower.result.ResultException;
@@ -46,8 +46,7 @@ import lombok.extern.slf4j.Slf4j;
 @RestControllerAdvice
 @ConditionalOnMissingClass
 @ConditionalOnWebApplication
-@ConditionalOnProperty(prefix = ConstConfigPrefix.AUTO_GLOBAL_EXCEPTION, value = ConstConfigPrefix.ENABLED,
-		matchIfMissing = true)
+@ConditionalOnProperty(prefix = ConstConfig.AUTO_GLOBAL_EXCEPTION, value = ConstConfig.ENABLED, matchIfMissing = true)
 public class GlobalExceptionAutoConfiguration {
 
 	@ExceptionHandler(Throwable.class)

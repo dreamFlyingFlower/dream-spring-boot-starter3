@@ -35,15 +35,15 @@ public class MessageSourceHelpers {
 	}
 
 	public static String getMessage(String code) {
-		return messageSource.getMessage(code, null, Locale.getDefault());
+		return messageSource.getMessage(code, null, code, Locale.getDefault());
 	}
 
 	public static String getMessage(String code, Object... args) {
-		return messageSource.getMessage(code, args, Locale.getDefault());
+		return messageSource.getMessage(code, args, code, Locale.getDefault());
 	}
 
 	public static String getMessage(String code, Locale locale, Object... args) {
-		return messageSource.getMessage(code, args, locale);
+		return messageSource.getMessage(code, args, code, locale);
 	}
 
 	public static String getMessage(String code, String defaultMessage) {

@@ -36,7 +36,8 @@ import com.fasterxml.jackson.module.paramnames.ParameterNamesModule;
 
 import dream.flying.flower.ConstDate;
 import dream.flying.flower.autoconfigure.web.config.CorsConfig;
-import dream.flying.flower.autoconfigure.web.properties.SelfWebMvcProperties;
+import dream.flying.flower.autoconfigure.web.properties.DreamWebMvcProperties;
+import dream.flying.flower.framework.core.constant.ConstConfig;
 import dream.flying.flower.framework.web.enums.SerializeLong;
 import dream.flying.flower.framework.web.serial.LongToStringSerializer;
 
@@ -51,18 +52,18 @@ import dream.flying.flower.framework.web.serial.LongToStringSerializer;
  */
 @AutoConfiguration
 @ConditionalOnMissingClass
-@EnableConfigurationProperties(SelfWebMvcProperties.class)
+@EnableConfigurationProperties(DreamWebMvcProperties.class)
 @ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.SERVLET)
-@ConditionalOnProperty(prefix = "dream.web-mvc", value = "enabled", matchIfMissing = true)
+@ConditionalOnProperty(prefix = ConstConfig.AUTO_WEB_MVC, value = ConstConfig.ENABLED, matchIfMissing = true)
 public class CustomizerWebMvcAutoConfiguration implements WebMvcConfigurer {
 
-	private SelfWebMvcProperties selfWebMvcProperties;
+	private DreamWebMvcProperties selfWebMvcProperties;
 
 	private WebMvcProperties webMvcProperties;
 
 	private ObjectMapper objectMapper;
 
-	public CustomizerWebMvcAutoConfiguration(SelfWebMvcProperties selfWebMvcProperties,
+	public CustomizerWebMvcAutoConfiguration(DreamWebMvcProperties selfWebMvcProperties,
 			WebMvcProperties webMvcProperties, ObjectMapper objectMapper) {
 		this.selfWebMvcProperties = selfWebMvcProperties;
 		this.webMvcProperties = webMvcProperties;

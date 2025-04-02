@@ -20,8 +20,8 @@ import dream.flying.flower.autoconfigure.redis.CustomizerHelperAutoConfiguration
  * @date 2023-08-16 15:14:19
  * @git {@link https://gitee.com/dreamFlyingFlower}
  */
-@ConditionalOnClass(RedisOperations.class)
 @AutoConfiguration
+@ConditionalOnClass(RedisOperations.class)
 @Import({ CustomizerHelperImportSelector.class })
 public class CustomizerHelperAutoConfiguration {
 

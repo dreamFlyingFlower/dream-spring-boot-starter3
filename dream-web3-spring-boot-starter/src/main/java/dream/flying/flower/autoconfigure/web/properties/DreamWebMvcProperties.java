@@ -3,7 +3,7 @@ package dream.flying.flower.autoconfigure.web.properties;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
-import dream.flying.flower.framework.core.constant.ConstConfigPrefix;
+import dream.flying.flower.framework.core.constant.ConstConfig;
 import lombok.Data;
 
 /**
@@ -14,9 +14,9 @@ import lombok.Data;
  * @git {@link https://github.com/dreamFlyingFlower }
  */
 @Data
-@ConfigurationProperties(prefix = ConstConfigPrefix.AUTO_WEB_MVC)
 @ConditionalOnMissingBean
-public class SelfWebMvcProperties {
+@ConfigurationProperties(prefix = ConstConfig.AUTO_WEB_MVC)
+public class DreamWebMvcProperties {
 
 	private Boolean enabled = true;
 
