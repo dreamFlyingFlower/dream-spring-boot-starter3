@@ -14,7 +14,7 @@ import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 import dream.flying.flower.autoconfigure.web.properties.AsyncExecutorProperties;
-import dream.flying.flower.framework.core.constant.ConstConfig;
+import dream.flying.flower.framework.constant.ConstConfig;
 
 /**
  * 初始化异步线程池

@@ -16,7 +16,7 @@ import com.google.code.kaptcha.impl.DefaultKaptcha;
 import com.google.code.kaptcha.util.Config;
 
 import dream.flying.flower.autoconfigure.captcha.properties.DreamCaptchaProperties;
-import dream.flying.flower.framework.core.constant.ConstConfig;
+import dream.flying.flower.framework.constant.ConstConfig;
 import dream.flying.flower.helper.ConvertHepler;
 import lombok.extern.slf4j.Slf4j;
 

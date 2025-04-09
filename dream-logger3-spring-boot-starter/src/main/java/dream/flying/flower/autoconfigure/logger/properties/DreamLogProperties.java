@@ -6,7 +6,7 @@ import java.util.regex.Pattern;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
-import dream.flying.flower.framework.core.constant.ConstConfig;
+import dream.flying.flower.framework.constant.ConstConfig;
 import lombok.Data;
 
 /**

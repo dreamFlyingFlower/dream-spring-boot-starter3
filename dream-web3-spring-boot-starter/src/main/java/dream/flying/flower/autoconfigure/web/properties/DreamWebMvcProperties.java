@@ -3,7 +3,7 @@ package dream.flying.flower.autoconfigure.web.properties;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
-import dream.flying.flower.framework.core.constant.ConstConfig;
+import dream.flying.flower.framework.constant.ConstConfig;
 import lombok.Data;
 
 /**
