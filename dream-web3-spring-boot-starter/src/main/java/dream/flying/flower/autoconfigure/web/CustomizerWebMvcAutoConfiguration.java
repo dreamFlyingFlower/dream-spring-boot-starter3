@@ -18,13 +18,13 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.http.converter.BufferedImageHttpMessageConverter;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
+import org.springframework.web.cors.DefaultCorsProcessor;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
-import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateDeserializer;
 import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
@@ -32,7 +32,6 @@ import com.fasterxml.jackson.datatype.jsr310.deser.LocalTimeDeserializer;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateSerializer;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalTimeSerializer;
-import com.fasterxml.jackson.module.paramnames.ParameterNamesModule;
 
 import dream.flying.flower.ConstDate;
 import dream.flying.flower.autoconfigure.web.config.CorsConfig;
@@ -98,7 +97,9 @@ public class CustomizerWebMvcAutoConfiguration implements WebMvcConfigurer {
 			convertLongToString(selfObjectMapper);
 		}
 
-		selfObjectMapper.registerModule(new ParameterNamesModule()).registerModule(new Jdk8Module());
+		// JDK8使用,需引入jackson-datatype-jdk8和jackson-module-parameter-names
+		// selfObjectMapper.registerModule(new
+		// ParameterNamesModule()).registerModule(new Jdk8Module());
 
 		// 忽略没有的字段
 		// selfObjectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES,

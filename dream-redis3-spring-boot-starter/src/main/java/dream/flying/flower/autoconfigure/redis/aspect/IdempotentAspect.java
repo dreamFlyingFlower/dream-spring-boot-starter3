@@ -24,10 +24,10 @@ import dream.flying.flower.result.ResultException;
  * @date 2023-01-04 11:05:14
  * @git {@link https://github.com/dreamFlyingFlower }
  */
-@EnableConfigurationProperties(AspectProperties.class)
-@ConditionalOnBean({ Idempotence.class })
-@Component
 @Aspect
+@Component
+@ConditionalOnBean({ Idempotence.class })
+@EnableConfigurationProperties(AspectProperties.class)
 public class IdempotentAspect {
 
 	@Autowired

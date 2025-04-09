@@ -27,7 +27,6 @@ import com.fasterxml.jackson.annotation.PropertyAccessor;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 import dream.flying.flower.ConstDate;
@@ -78,7 +77,8 @@ public class RedisConfig implements CachingConfigurer {
 		objectMapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
 		// 忽略未知属性,防止json字符串中存在,java对象中不存在对应属性的情况出现错误
 		objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-		objectMapper.registerModule(new Jdk8Module());
+		// JDK8使用
+		// objectMapper.registerModule(new Jdk8Module());
 		objectMapper.registerModule(new JavaTimeModule());
 
 		Jackson2JsonRedisSerializer<Object> jackson2JsonRedisSerializer =
