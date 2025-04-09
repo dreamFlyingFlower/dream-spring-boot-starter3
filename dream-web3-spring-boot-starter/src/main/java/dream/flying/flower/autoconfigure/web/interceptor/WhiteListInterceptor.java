@@ -6,7 +6,7 @@ import org.springframework.web.servlet.HandlerInterceptor;
 import dream.flying.flower.autoconfigure.web.properties.WhiteListProperties;
 import dream.flying.flower.autoconfigure.web.whitelist.WhiteListHandler;
 import dream.flying.flower.framework.core.helper.IpHelpers;
-import dream.flying.flower.framework.web.helper.WebHelpers;
+import dream.flying.flower.framework.web.WebHelpers;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;

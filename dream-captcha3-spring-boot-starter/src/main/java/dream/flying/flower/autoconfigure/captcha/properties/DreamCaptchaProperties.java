@@ -13,7 +13,7 @@ import dream.flying.flower.autoconfigure.captcha.strategy.LightNoise;
 import dream.flying.flower.autoconfigure.captcha.strategy.RandomColorWordRenderer;
 import dream.flying.flower.autoconfigure.captcha.strategy.Ripple;
 import dream.flying.flower.autoconfigure.captcha.strategy.UniqueTextProducer;
-import dream.flying.flower.framework.core.constant.ConstConfig;
+import dream.flying.flower.framework.constant.ConstConfig;
 import lombok.Data;
 
 /**

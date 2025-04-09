@@ -15,7 +15,7 @@ import dream.flying.flower.ConstString;
 import dream.flying.flower.autoconfigure.logger.entity.OperationLogEntity;
 import dream.flying.flower.autoconfigure.logger.properties.DreamLogProperties;
 import dream.flying.flower.autoconfigure.logger.service.OperationLogService;
-import dream.flying.flower.framework.core.constant.ConstNetwork;
+import dream.flying.flower.framework.constant.ConstNetwork;
 import dream.flying.flower.framework.json.JsonHelpers;
 import dream.flying.flower.lang.StrHelper;
 import lombok.RequiredArgsConstructor;

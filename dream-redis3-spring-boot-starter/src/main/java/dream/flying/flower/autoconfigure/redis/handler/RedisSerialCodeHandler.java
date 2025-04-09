@@ -12,7 +12,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.context.annotation.Configuration;
 
 import dream.flying.flower.autoconfigure.redis.helper.RedisStrHelpers;
-import dream.flying.flower.framework.core.constant.ConstRedis;
+import dream.flying.flower.framework.constant.ConstRedis;
 import dream.flying.flower.framework.web.handler.SerialCodeHandler;
 import dream.flying.flower.lang.StrHelper;
 

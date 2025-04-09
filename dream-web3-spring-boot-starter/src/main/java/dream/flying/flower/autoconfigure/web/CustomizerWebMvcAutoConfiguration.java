@@ -36,7 +36,7 @@ import com.fasterxml.jackson.datatype.jsr310.ser.LocalTimeSerializer;
 import dream.flying.flower.ConstDate;
 import dream.flying.flower.autoconfigure.web.config.CorsConfig;
 import dream.flying.flower.autoconfigure.web.properties.DreamWebMvcProperties;
-import dream.flying.flower.framework.core.constant.ConstConfig;
+import dream.flying.flower.framework.constant.ConstConfig;
 import dream.flying.flower.framework.web.enums.SerializeLong;
 import dream.flying.flower.framework.web.serial.LongToStringSerializer;
 
