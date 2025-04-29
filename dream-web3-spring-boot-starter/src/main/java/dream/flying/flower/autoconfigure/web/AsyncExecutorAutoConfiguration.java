@@ -12,9 +12,12 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.AsyncConfigurer;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
 import dream.flying.flower.autoconfigure.web.properties.AsyncExecutorProperties;
 import dream.flying.flower.framework.constant.ConstConfig;
+import dream.flying.flower.framework.web.WebHelpers;
 
 /**
  * 初始化异步线程池
@@ -41,6 +44,18 @@ public class AsyncExecutorAutoConfiguration {
 	@ConditionalOnMissingBean
 	Executor defaultAsyncExecutor(AsyncExecutorProperties asyncExecutorProperties) {
 		ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+		// 线程拷贝上下文
+		executor.setTaskDecorator(r -> {
+			ServletRequestAttributes requestAttributes = WebHelpers.getRequestAttributes();
+			return () -> {
+				try {
+					RequestContextHolder.setRequestAttributes(requestAttributes);
+					r.run();
+				} finally {
+					RequestContextHolder.resetRequestAttributes();
+				}
+			};
+		});
 		// 配置核心线程数
 		executor.setCorePoolSize(asyncExecutorProperties.getCorePoolSize());
 		// 配置最大线程数
