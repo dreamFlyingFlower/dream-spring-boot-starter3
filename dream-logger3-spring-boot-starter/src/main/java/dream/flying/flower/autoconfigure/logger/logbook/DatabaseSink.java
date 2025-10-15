@@ -36,6 +36,7 @@ public class DatabaseSink implements Sink {
 
 	private final OperationLogService operationLogService;
 
+	@SuppressWarnings("resource")
 	@Override
 	public void write(Precorrelation precorrelation, HttpRequest request) throws IOException {
 		MDC.putCloseable("traceId", precorrelation.getId());
@@ -70,7 +71,7 @@ public class DatabaseSink implements Sink {
 					.responseStatus(response.getStatus())
 					.success(1)
 					.requestIp(getIp(request))
-					.createTime(new Date())
+					.createdAt(new Date())
 					.build();
 			operationLogService.save(operationLogEntity);
 		} catch (Exception e) {

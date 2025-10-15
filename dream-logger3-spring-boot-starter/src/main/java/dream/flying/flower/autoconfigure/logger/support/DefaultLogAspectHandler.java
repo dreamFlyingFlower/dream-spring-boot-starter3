@@ -130,7 +130,7 @@ public class DefaultLogAspectHandler implements LogAspectHandler {
 				.costTime(Duration.between(requestTime, responseTime).toMillis())
 				.userId(getCurrentUserId())
 				.username(getCurrentUsername())
-				.createTime(new Date())
+				.createdAt(new Date())
 				.build();
 
 		return operationLogEntity;
