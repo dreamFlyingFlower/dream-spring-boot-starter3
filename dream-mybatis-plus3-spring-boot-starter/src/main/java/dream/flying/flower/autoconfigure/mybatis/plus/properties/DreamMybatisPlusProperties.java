@@ -28,8 +28,8 @@ public class DreamMybatisPlusProperties {
 		private static final long serialVersionUID = 2687937192576260130L;
 
 		{
-			put("createTime", new Date());
-			put("updateTime", new Date());
+			put("createdAt", new Date());
+			put("updatedAt", new Date());
 			put("version", 1);
 			put("deleted", 0);
 		}
@@ -43,7 +43,7 @@ public class DreamMybatisPlusProperties {
 		private static final long serialVersionUID = 2687937192576260130L;
 
 		{
-			put("updateTime", new Date());
+			put("updateAt", new Date());
 		}
 	};
 
