@@ -106,6 +106,7 @@ public class AccessLimitInterceptor implements HandlerInterceptor {
 	 * @param result
 	 * @throws IOException
 	 */
+	@SuppressWarnings("resource")
 	private void resonseOut(HttpServletResponse response, Result<?> result) throws IOException {
 		response.setCharacterEncoding(StandardCharsets.UTF_8.name());
 		response.setContentType(MediaType.APPLICATION_JSON_VALUE);
