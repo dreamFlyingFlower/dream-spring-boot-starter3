@@ -1,21 +1,18 @@
 package dream.flying.flower.autoconfigure.redis.access;
 
-import java.io.IOException;
-import java.io.PrintWriter;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.HandlerInterceptor;
 
-import com.alibaba.fastjson2.JSONObject;
-
+import dream.flying.flower.framework.constant.ConstRedis;
+import dream.flying.flower.framework.core.helper.IpHelpers;
+import dream.flying.flower.framework.web.WebHelpers;
 import dream.flying.flower.limit.LimitAccessHandler;
 import dream.flying.flower.limit.annotation.LimitAccess;
 import dream.flying.flower.result.Result;
@@ -53,15 +50,11 @@ public class AccessLimitInterceptor implements HandlerInterceptor {
 		}
 
 		if (isLimit(request, limitAccess)) {
-			resonseOut(response, Result.error("被限流了"));
+			WebHelpers.render(response, Result.error("被限流了"));
 			return false;
 		}
 
-		if (limitAccess.custom()) {
-			return limitAccess.handler().getConstructor(new Class<?>[0]).newInstance().handler(limitAccess);
-		} else {
-			return new DefaultAccessLimitHandler().handler(limitAccess);
-		}
+		return true;
 	}
 
 	/**
@@ -70,47 +63,36 @@ public class AccessLimitInterceptor implements HandlerInterceptor {
 	 * @param request 请求
 	 * @param limitAccess 限流注解
 	 * @return 是否限流
+	 * @throws SecurityException
+	 * @throws NoSuchMethodException
+	 * @throws InvocationTargetException
+	 * @throws IllegalArgumentException
+	 * @throws IllegalAccessException
+	 * @throws InstantiationException
 	 */
-	private boolean isLimit(HttpServletRequest request, LimitAccess limitAccess) {
+	private boolean isLimit(HttpServletRequest request, LimitAccess limitAccess)
+			throws InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException,
+			NoSuchMethodException, SecurityException {
 		if (limitAccess.custom()) {
-			try {
-				LimitAccessHandler limitAccessHandler =
+			LimitAccessHandler limitAccessHandler = new DefaultAccessLimitHandler();
+			if (limitAccess.handler() != LimitAccessHandler.class) {
+				limitAccessHandler =
 						limitAccess.handler().getDeclaredConstructor(new Class<?>[0]).newInstance(new Object[0]);
-				return limitAccessHandler.handler(limitAccess);
-			} catch (InstantiationException | IllegalAccessException | IllegalArgumentException
-					| InvocationTargetException | NoSuchMethodException | SecurityException e) {
-				e.printStackTrace();
 			}
-			return false;
+			return limitAccessHandler.handler(limitAccess);
 		}
-		// 缓存key,根据实际情况获取
-		String limitKey = request.getServletPath() + request.getRequestURI();
+
+		String limitKey =
+				ConstRedis.buildKey(IpHelpers.getIp(request), request.getContextPath(), request.getServletPath());
 		Object redisCount = redisTemplate.opsForValue().get(limitKey);
 		if (redisCount == null) {
-			// 初始 次数
 			redisTemplate.opsForValue().set(limitKey, 1, limitAccess.value(), limitAccess.timeUnit());
 		} else {
 			if (Integer.parseInt(redisCount.toString()) >= limitAccess.count()) {
 				return true;
 			}
-			// 次数自增
 			redisTemplate.opsForValue().increment(limitKey);
 		}
 		return false;
-	}
-
-	/**
-	 * 回写给客户端
-	 * 
-	 * @param response
-	 * @param result
-	 * @throws IOException
-	 */
-	@SuppressWarnings("resource")
-	private void resonseOut(HttpServletResponse response, Result<?> result) throws IOException {
-		response.setCharacterEncoding(StandardCharsets.UTF_8.name());
-		response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-		PrintWriter out = response.getWriter();
-		out.append(JSONObject.toJSONString(result).toString());
 	}
 }
