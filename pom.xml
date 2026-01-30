@@ -20,6 +20,7 @@
 		<module>dream-excel3-spring-boot-starter</module>
 		<module>dream-logger3-spring-boot-starter</module>
 		<module>dream-mybatis-plus3-spring-boot-starter</module>
+		<module>dream-oss3-spring-boot-starter</module>
 		<module>dream-redis3-spring-boot-starter</module>
 		<module>dream-security3-spring-boot-starter</module>
 		<module>dream-storage3-spring-boot-starter</module>
