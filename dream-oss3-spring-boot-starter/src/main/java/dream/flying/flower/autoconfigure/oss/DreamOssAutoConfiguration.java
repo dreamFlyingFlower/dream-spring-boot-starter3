@@ -13,13 +13,13 @@ import org.springframework.context.annotation.ImportSelector;
 import org.springframework.core.type.AnnotationMetadata;
 import org.springframework.util.Assert;
 
-import dream.flying.flower.autoconfigure.oss.DreamOssAutoConfiguration.StorageConfigurationImportSelector;
-import dream.flying.flower.framework.storage.StorageManager;
-import dream.flying.flower.framework.storage.StorageManagerCustomizer;
-import dream.flying.flower.framework.storage.StorageManagerCustomizers;
-import dream.flying.flower.framework.storage.config.StorageConfigurations;
-import dream.flying.flower.framework.storage.enums.StorageType;
-import dream.flying.flower.framework.storage.properties.StorageProperties;
+import dream.flying.flower.autoconfigure.oss.DreamOssAutoConfiguration.OssConfigurationImportSelector;
+import dream.flying.flower.framework.oss.OssManager;
+import dream.flying.flower.framework.oss.OssManagerCustomizer;
+import dream.flying.flower.framework.oss.OssManagerCustomizers;
+import dream.flying.flower.framework.oss.config.OssConfigurations;
+import dream.flying.flower.framework.oss.enums.OssType;
+import dream.flying.flower.framework.oss.properties.OssProperties;
 
 /**
  * 存储自动配置,参照{@link CacheAutoConfiguration},默认使用本地存储.注意,自动配置不能被直接扫描,否则报错
@@ -29,55 +29,55 @@ import dream.flying.flower.framework.storage.properties.StorageProperties;
  * @git {@link https://github.com/dreamFlyingFlower}
  */
 @AutoConfiguration
-@Import({ StorageConfigurationImportSelector.class })
+@Import({ OssConfigurationImportSelector.class })
 public class DreamOssAutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean
-	StorageManagerCustomizers storageManagerCustomizers(ObjectProvider<StorageManagerCustomizer<?>> customizers) {
-		return new StorageManagerCustomizers(customizers.orderedStream().collect(Collectors.toList()));
+	OssManagerCustomizers ossManagerCustomizers(ObjectProvider<OssManagerCustomizer<?>> customizers) {
+		return new OssManagerCustomizers(customizers.orderedStream().collect(Collectors.toList()));
 	}
 
 	@Bean
-	StorageManagerValidator storageAutoConfigurationValidator(StorageProperties storageProperties,
-			ObjectProvider<StorageManager> storageManager) {
-		return new StorageManagerValidator(storageProperties, storageManager);
+	OssManagerValidator ossAutoConfigurationValidator(OssProperties ossProperties,
+			ObjectProvider<OssManager> ossManager) {
+		return new OssManagerValidator(ossProperties, ossManager);
 	}
 
 	/**
-	 * Bean used to validate that a StorageManager exists and provide a more
-	 * meaningful exception.
+	 * Bean used to validate that a OssManager exists and provide a more meaningful
+	 * exception.
 	 */
-	static class StorageManagerValidator implements InitializingBean {
+	static class OssManagerValidator implements InitializingBean {
 
-		private final StorageProperties storageProperties;
+		private final OssProperties ossProperties;
 
-		private final ObjectProvider<StorageManager> storageManager;
+		private final ObjectProvider<OssManager> ossManager;
 
-		StorageManagerValidator(StorageProperties storageProperties, ObjectProvider<StorageManager> storageManager) {
-			this.storageProperties = storageProperties;
-			this.storageManager = storageManager;
+		OssManagerValidator(OssProperties ossProperties, ObjectProvider<OssManager> ossManager) {
+			this.ossProperties = ossProperties;
+			this.ossManager = ossManager;
 		}
 
 		@Override
 		public void afterPropertiesSet() {
-			Assert.notNull(this.storageManager.getIfAvailable(),
-					() -> "No storage manager could be auto-configured, check your configuration (storage type is '"
-							+ this.storageProperties.getType() + "')");
+			Assert.notNull(this.ossManager.getIfAvailable(),
+					() -> "No oss manager could be auto-configured, check your configuration (oss type is '"
+							+ this.ossProperties.getType() + "')");
 		}
 	}
 
 	/**
-	 * {@link ImportSelector} to add {@link StorageType} configuration classes.
+	 * {@link ImportSelector} to add {@link OssType} configuration classes.
 	 */
-	static class StorageConfigurationImportSelector implements ImportSelector {
+	static class OssConfigurationImportSelector implements ImportSelector {
 
 		@Override
 		public String[] selectImports(AnnotationMetadata importingClassMetadata) {
-			StorageType[] types = StorageType.values();
+			OssType[] types = OssType.values();
 			String[] imports = new String[types.length];
 			for (int i = 0; i < types.length; i++) {
-				imports[i] = StorageConfigurations.getConfigurationClass(types[i]);
+				imports[i] = OssConfigurations.getConfigurationClass(types[i]);
 			}
 			return imports;
 		}

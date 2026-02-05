@@ -17,7 +17,7 @@
 	<dependencies>
 		<dependency>
 			<groupId>dream.flying.flower</groupId>
-			<artifactId>dream-framework-storage3</artifactId>
+			<artifactId>dream-framework-oss3</artifactId>
 		</dependency>
 	</dependencies>
 

@@ -23,7 +23,6 @@
 		<module>dream-oss3-spring-boot-starter</module>
 		<module>dream-redis3-spring-boot-starter</module>
 		<module>dream-security3-spring-boot-starter</module>
-		<module>dream-storage3-spring-boot-starter</module>
 		<module>dream-web3-spring-boot-starter</module>
 	</modules>
 
