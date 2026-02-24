@@ -3,7 +3,6 @@ package dream.flying.flower.autoconfigure.logger.support;
 import java.lang.reflect.Method;
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -130,7 +129,7 @@ public class DefaultLogAspectHandler implements LogAspectHandler {
 				.costTime(Duration.between(requestTime, responseTime).toMillis())
 				.userId(getCurrentUserId())
 				.username(getCurrentUsername())
-				.createdAt(new Date())
+				.createdAt(LocalDateTime.now())
 				.build();
 
 		return operationLogEntity;
