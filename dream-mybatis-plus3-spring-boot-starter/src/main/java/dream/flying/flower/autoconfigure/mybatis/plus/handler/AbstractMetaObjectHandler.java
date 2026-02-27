@@ -21,7 +21,14 @@ import dream.flying.flower.lang.StrHelper;
 import lombok.RequiredArgsConstructor;
 
 /**
- * 当使用MyBatisPlus的注解{@link TableField#fill()}时会调用该方法
+ * 当使用MyBatisPlus的注解{@link TableField#fill()}且值为{@link FieldFill#INSERT/UPDATE}时会调用该方法
+ * 
+ * <pre>
+ * 1.需要配置插入或更新的字段Java属性名
+ * 2.插入/更新时,若字段符合配置,根据以下规则设置值:
+ * 	->若该字段未指定默认值,则数字类型设置为0,时间类型设置为当前时间,布尔类型设置为false,其他类型为null
+ * 	->若该字段指定默认值,则使用默认值
+ * </pre>
  *
  * @author 飞花梦影
  * @date 2023-01-11 15:33:13
@@ -71,8 +78,8 @@ public abstract class AbstractMetaObjectHandler implements MetaObjectHandler {
 		}
 		// 处理字段
 		Class<?> fieldTypeClass = metaObject.getGetterType(fieldName);
-		Object createTime = this.getFieldValByName(fieldName, metaObject);
-		if (Objects.isNull(createTime)) {
+		Object fieldValue = this.getFieldValByName(fieldName, metaObject);
+		if (Objects.isNull(fieldValue)) {
 			if (long.class == fieldTypeClass || Long.class == fieldTypeClass || int.class == fieldTypeClass
 					|| Integer.class == fieldTypeClass || short.class == fieldTypeClass || Short.class == fieldTypeClass
 					|| byte.class == fieldTypeClass || Byte.class == fieldTypeClass || double.class == fieldTypeClass
