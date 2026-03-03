@@ -1,0 +1,88 @@
+package dream.flying.flower.autoconfigure.sms;
+
+import java.util.stream.Collectors;
+
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.boot.autoconfigure.AutoConfiguration;
+import org.springframework.boot.autoconfigure.cache.CacheAutoConfiguration;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Import;
+import org.springframework.context.annotation.ImportSelector;
+import org.springframework.core.type.AnnotationMetadata;
+import org.springframework.util.Assert;
+
+import dream.flying.flower.autoconfigure.sms.DreamSmsAutoConfiguration.OssConfigurationImportSelector;
+import dream.flying.flower.framework.oss.config.OssConfigurations;
+import dream.flying.flower.framework.oss.enums.OssType;
+import dream.flying.flower.framework.oss.properties.OssProperties;
+import dream.flying.flower.framework.sms.SmsManager;
+import dream.flying.flower.framework.sms.SmsManagerCustomizer;
+import dream.flying.flower.framework.sms.SmsManagerCustomizers;
+import dream.flying.flower.framework.sms.properties.SmsProperties;
+
+/**
+ * 存储自动配置,参照{@link CacheAutoConfiguration},默认使用本地存储.注意,自动配置不能被直接扫描,否则报错
+ * 
+ * @author 飞花梦影
+ * @date 2023-08-11 14:41:38
+ * @git {@link https://github.com/dreamFlyingFlower}
+ */
+@AutoConfiguration
+@Import({ OssConfigurationImportSelector.class })
+@EnableConfigurationProperties(SmsProperties.class)
+public class DreamSmsAutoConfiguration {
+
+	@Bean
+	@ConditionalOnMissingBean
+	SmsManagerCustomizers smsManagerCustomizers(ObjectProvider<SmsManagerCustomizer<?>> customizers) {
+		return new SmsManagerCustomizers(customizers.orderedStream().collect(Collectors.toList()));
+	}
+
+	@Bean
+	OssManagerValidator ossAutoConfigurationValidator(OssProperties ossProperties,
+			ObjectProvider<SmsManager> smsManager) {
+		return new OssManagerValidator(ossProperties, smsManager);
+	}
+
+	/**
+	 * Bean used to validate that a OssManager exists and provide a more meaningful
+	 * exception.
+	 */
+	static class OssManagerValidator implements InitializingBean {
+
+		private final SmsProperties smsProperties;
+
+		private final ObjectProvider<SmsManager> smsManager;
+
+		OssManagerValidator(SmsProperties smsProperties, ObjectProvider<SmsManager> smsManager) {
+			this.smsProperties = smsProperties;
+			this.smsManager = smsManager;
+		}
+
+		@Override
+		public void afterPropertiesSet() {
+			Assert.notNull(this.smsManager.getIfAvailable(),
+					() -> "No oss manager could be auto-configured, check your configuration (oss type is '"
+							+ this.ossProperties.getType() + "')");
+		}
+	}
+
+	/**
+	 * {@link ImportSelector} to add {@link OssType} configuration classes.
+	 */
+	static class OssConfigurationImportSelector implements ImportSelector {
+
+		@Override
+		public String[] selectImports(AnnotationMetadata importingClassMetadata) {
+			OssType[] types = OssType.values();
+			String[] imports = new String[types.length];
+			for (int i = 0; i < types.length; i++) {
+				imports[i] = OssConfigurations.getConfigurationClass(types[i]);
+			}
+			return imports;
+		}
+	}
+}

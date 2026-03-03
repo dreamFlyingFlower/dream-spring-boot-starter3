@@ -7,9 +7,9 @@ import org.springframework.format.annotation.DateTimeFormat;
 import com.fasterxml.jackson.annotation.JsonFormat;
 
 import dream.flying.flower.ConstDate;
+import dream.flying.flower.framework.core.valid.ValidAdd;
+import dream.flying.flower.framework.core.valid.ValidEdit;
 import dream.flying.flower.framework.web.model.AbstractTenantVO;
-import dream.flying.flower.framework.web.valid.ValidAdd;
-import dream.flying.flower.framework.web.valid.ValidEdit;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
