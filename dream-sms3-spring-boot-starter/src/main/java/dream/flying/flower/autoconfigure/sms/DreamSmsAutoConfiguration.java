@@ -21,6 +21,7 @@ import dream.flying.flower.framework.oss.properties.OssProperties;
 import dream.flying.flower.framework.sms.SmsManager;
 import dream.flying.flower.framework.sms.SmsManagerCustomizer;
 import dream.flying.flower.framework.sms.SmsManagerCustomizers;
+import dream.flying.flower.framework.sms.enums.SmsType;
 import dream.flying.flower.framework.sms.properties.SmsProperties;
 
 /**
@@ -77,7 +78,7 @@ public class DreamSmsAutoConfiguration {
 
 		@Override
 		public String[] selectImports(AnnotationMetadata importingClassMetadata) {
-			OssType[] types = OssType.values();
+			OssType[] types = SmsType.values();
 			String[] imports = new String[types.length];
 			for (int i = 0; i < types.length; i++) {
 				imports[i] = OssConfigurations.getConfigurationClass(types[i]);
