@@ -39,8 +39,7 @@ public class DreamOssAutoConfiguration {
 	}
 
 	@Bean
-	OssManagerValidator ossAutoConfigurationValidator(OssProperties ossProperties,
-			ObjectProvider<OssManager> ossManager) {
+	OssManagerValidator ossManagerValidator(OssProperties ossProperties, ObjectProvider<OssManager> ossManager) {
 		return new OssManagerValidator(ossProperties, ossManager);
 	}
 
