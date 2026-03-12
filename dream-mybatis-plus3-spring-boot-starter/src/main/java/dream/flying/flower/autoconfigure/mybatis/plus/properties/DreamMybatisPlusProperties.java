@@ -1,6 +1,6 @@
 package dream.flying.flower.autoconfigure.mybatis.plus.properties;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -28,8 +28,8 @@ public class DreamMybatisPlusProperties {
 		private static final long serialVersionUID = 2687937192576260130L;
 
 		{
-			put("createdAt", new Date());
-			put("updatedAt", new Date());
+			put("createdAt", LocalDateTime.now());
+			put("updatedAt", LocalDateTime.now());
 			put("version", 1);
 			put("deleted", 0);
 		}
@@ -43,7 +43,7 @@ public class DreamMybatisPlusProperties {
 		private static final long serialVersionUID = 2687937192576260130L;
 
 		{
-			put("updateAt", new Date());
+			put("updateAt", LocalDateTime.now());
 		}
 	};
 
