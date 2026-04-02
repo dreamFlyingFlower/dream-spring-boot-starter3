@@ -23,7 +23,7 @@ import dream.flying.flower.autoconfigure.cryption.entity.BaseCryption;
 import dream.flying.flower.autoconfigure.cryption.properties.EncryptResponseProperties;
 import dream.flying.flower.autoconfigure.cryption.strategy.CryptContext;
 import dream.flying.flower.collection.CollectionHelper;
-import dream.flying.flower.framework.core.json.JsonHelpers;
+import dream.flying.flower.framework.json.JsonHelpers;
 import dream.flying.flower.lang.StrHelper;
 import lombok.extern.slf4j.Slf4j;
 

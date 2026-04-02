@@ -2,18 +2,17 @@ package dream.flying.flower.autoconfigure.security.handler;
 
 import java.io.IOException;
 
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationFailureHandler;
 
 import dream.flying.flower.enums.TipEnum;
-import dream.flying.flower.framework.web.helper.WebHelpers;
+import dream.flying.flower.framework.web.WebHelpers;
 import dream.flying.flower.result.Result;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 /**
  * Security登录失败
@@ -29,7 +28,7 @@ public class SecurityFailureHandler extends SimpleUrlAuthenticationFailureHandle
 	public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response,
 			AuthenticationException exception) throws IOException, ServletException {
 		Result<?> result =
-				Result.builder().code(TipEnum.TIP_INTERNAL_UNAUTHORIZED.getCode()).msg(exception.getMessage()).build();
+				Result.builder().code(TipEnum.TIP_INTERNAL_UNAUTHORIZED.getValue()).msg(exception.getMessage()).build();
 		response.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
 		WebHelpers.write(response, result);
 	}

@@ -143,9 +143,10 @@ public class SecurityConfig {
 				// 禁止使用HttpSession
 				.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS).and()
 				// 不需要校验的请求
-				.authorizeRequests().antMatchers(securityProperties.getHttpIgnoreResources()).permitAll()
+				.authorizeRequests()
+				.requestMatchers(securityProperties.getHttpIgnoreResources()).permitAll()
 				// 不需要校验的请求方式
-				.antMatchers(HttpMethod.OPTIONS).permitAll()
+				.requestMatchers(HttpMethod.OPTIONS).permitAll()
 				// 其他请求都需要校验
 				.anyRequest().authenticated().and()
 				// 登录相关
@@ -170,6 +171,6 @@ public class SecurityConfig {
 		return webSecurity -> webSecurity
 				// 去除验url非法验证防火墙
 				// web.httpFirewall(new DefaultHttpFirewall());//StrictHttpFirewall
-				.ignoring().antMatchers(securityProperties.getWebIgnoreResources());
+				.ignoring().requestMatchers(securityProperties.getWebIgnoreResources());
 	}
 }

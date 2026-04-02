@@ -1,10 +1,9 @@
 package dream.flying.flower.autoconfigure.excel.dto;
 
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.Size;
-
-import dream.flying.flower.framework.web.entity.AbstractDTO;
+import dream.flying.flower.framework.web.model.AbstractVO;
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -19,7 +18,7 @@ import lombok.experimental.SuperBuilder;
 @AllArgsConstructor
 @SuperBuilder
 @Schema(description = "excel模板明细DTO")
-public class ExcelItemDTO extends AbstractDTO {
+public class ExcelItemDTO extends AbstractVO {
 
 	private static final long serialVersionUID = 1L;
 

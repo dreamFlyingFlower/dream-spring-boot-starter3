@@ -2,15 +2,14 @@ package dream.flying.flower.autoconfigure.security.exception;
 
 import java.io.IOException;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.AuthenticationEntryPoint;
 
 import dream.flying.flower.enums.TipEnum;
-import dream.flying.flower.framework.web.helper.WebHelpers;
+import dream.flying.flower.framework.web.WebHelpers;
 import dream.flying.flower.result.Result;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 /**
  * 匿名用户(token不存在、错误)，异常处理器
