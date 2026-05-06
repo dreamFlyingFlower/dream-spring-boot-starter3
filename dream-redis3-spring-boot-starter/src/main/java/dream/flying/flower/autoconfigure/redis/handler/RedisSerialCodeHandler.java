@@ -12,7 +12,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.context.annotation.Configuration;
 
 import dream.flying.flower.autoconfigure.redis.helper.RedisStrHelpers;
-import dream.flying.flower.framework.constant.ConstRedis;
+import dream.flying.flower.framework.constant.ConstCache;
 import dream.flying.flower.framework.web.handler.SerialCodeHandler;
 import dream.flying.flower.lang.StrHelper;
 
@@ -40,7 +40,7 @@ public class RedisSerialCodeHandler implements SerialCodeHandler {
 	@Override
 	public String generateCodeWithDate(String prefix, int length) {
 		String localDate = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
-		String redisKey = ConstRedis.buildKey(prefix, localDate);
+		String redisKey = ConstCache.buildRedisKey(prefix, localDate);
 		Long index = redisStrHelpers.incr(redisKey, 1L);
 		if (1 == index) {
 			redisStrHelpers.setExpire(redisKey, index.toString(), 1, TimeUnit.DAYS);
@@ -53,7 +53,7 @@ public class RedisSerialCodeHandler implements SerialCodeHandler {
 	public List<String> generateCodesWithDate(String prefix, int length, long delta) {
 		delta = delta < 1 ? 1 : delta;
 		String localDate = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
-		String redisKey = ConstRedis.buildKey(prefix, localDate);
+		String redisKey = ConstCache.buildRedisKey(prefix, localDate);
 		String value = redisStrHelpers.get(redisKey);
 		Long begin = StrHelper.isBlank(value) ? 0L : Long.parseLong(value);
 		Long end = redisStrHelpers.incr(redisKey, delta);

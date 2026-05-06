@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.HandlerInterceptor;
 
-import dream.flying.flower.framework.constant.ConstRedis;
+import dream.flying.flower.framework.constant.ConstCache;
 import dream.flying.flower.framework.core.helper.IpHelpers;
 import dream.flying.flower.framework.web.WebHelpers;
 import dream.flying.flower.limit.LimitAccessHandler;
@@ -83,7 +83,7 @@ public class AccessLimitInterceptor implements HandlerInterceptor {
 		}
 
 		String limitKey =
-				ConstRedis.buildKey(IpHelpers.getIp(request), request.getContextPath(), request.getServletPath());
+				ConstCache.buildRedisKey(IpHelpers.getIp(request), request.getContextPath(), request.getServletPath());
 		Object redisCount = redisTemplate.opsForValue().get(limitKey);
 		if (redisCount == null) {
 			redisTemplate.opsForValue().set(limitKey, 1, limitAccess.value(), limitAccess.timeUnit());

@@ -30,7 +30,7 @@ import dream.flying.flower.framework.web.WebHelpers;
 @AutoConfiguration
 @ConditionalOnMissingClass
 @EnableConfigurationProperties({ AsyncExecutorProperties.class })
-@ConditionalOnProperty(prefix = ConstConfig.AUTO_ASYNC_EXECUTOR, value = ConstConfig.ENABLED, matchIfMissing = true)
+@ConditionalOnProperty(prefix = ConstConfig.Auto.ASYNC_EXECUTOR, value = ConstConfig.ENABLED, matchIfMissing = true)
 public class AsyncExecutorAutoConfiguration {
 
 	/**

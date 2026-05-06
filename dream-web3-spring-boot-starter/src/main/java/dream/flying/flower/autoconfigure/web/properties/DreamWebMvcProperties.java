@@ -15,7 +15,7 @@ import lombok.Data;
  */
 @Data
 @ConditionalOnMissingBean
-@ConfigurationProperties(prefix = ConstConfig.AUTO_WEB_MVC)
+@ConfigurationProperties(prefix = ConstConfig.Auto.WEB_MVC)
 public class DreamWebMvcProperties {
 
 	private Boolean enabled = true;

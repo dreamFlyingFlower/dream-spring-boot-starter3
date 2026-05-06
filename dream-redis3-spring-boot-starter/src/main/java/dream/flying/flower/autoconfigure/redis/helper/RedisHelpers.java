@@ -27,7 +27,7 @@ import com.alibaba.fastjson2.JSON;
 import dream.flying.flower.ConstDuration;
 import dream.flying.flower.autoconfigure.redis.config.RedisConfig;
 import dream.flying.flower.digest.DigestHelper;
-import dream.flying.flower.framework.constant.ConstRedis;
+import dream.flying.flower.framework.constant.ConstCache;
 import dream.flying.flower.framework.constant.enums.RedisKey;
 import dream.flying.flower.framework.json.FastjsonHelpers;
 import lombok.Getter;
@@ -59,7 +59,8 @@ public class RedisHelpers {
 	 * @return 删除是否成功.true->成功,false->失败
 	 */
 	public boolean atomicCompareAndDelete(String key, Object value) {
-		return redisTemplate.execute(new DefaultRedisScript<Long>(ConstRedis.SCRIPT_COMPARE_AND_DELETE, Long.class),
+		return redisTemplate.execute(
+				new DefaultRedisScript<Long>(ConstCache.REDIS_SCRIPT_COMPARE_AND_DELETE, Long.class),
 				Arrays.asList(key), value) > 0;
 	}
 
@@ -73,9 +74,9 @@ public class RedisHelpers {
 	 */
 	public void atomicCompareAndDelete(String key, Object value, Consumer<RedisTemplate<String, Object>> failCallback,
 			Consumer<RedisTemplate<String, Object>> successCallback) {
-		Long result =
-				redisTemplate.execute(new DefaultRedisScript<Long>(ConstRedis.SCRIPT_COMPARE_AND_DELETE, Long.class),
-						Arrays.asList(key), value);
+		Long result = redisTemplate.execute(
+				new DefaultRedisScript<Long>(ConstCache.REDIS_SCRIPT_COMPARE_AND_DELETE, Long.class),
+				Arrays.asList(key), value);
 		if (result == 0L) {
 			// 失败
 			if (Objects.nonNull(failCallback)) {
@@ -324,7 +325,8 @@ public class RedisHelpers {
 				return function.apply(t);
 			} finally {
 				// 利用redis的脚本功能执行删除的操作,需要原子环境,防止锁刚过期,删除到其他人的锁.0删除失败,1删除成功
-				redisTemplate.execute(new DefaultRedisScript<Long>(ConstRedis.SCRIPT_COMPARE_AND_DELETE, Long.class),
+				redisTemplate.execute(
+						new DefaultRedisScript<Long>(ConstCache.REDIS_SCRIPT_COMPARE_AND_DELETE, Long.class),
 						Arrays.asList(RedisKey.REDIS_KEY_LOCK.getKey(key)), uuid);
 			}
 		} else {
@@ -474,7 +476,7 @@ public class RedisHelpers {
 	 * @param value value
 	 */
 	public void setExpire(String key, Object value) {
-		setExpire(key, value, ConstRedis.DEFAULT_TIMEOUT_SECOND);
+		setExpire(key, value, ConstCache.REDIS_DEFAULT_TIMEOUT_SECOND);
 	}
 
 	/**
@@ -519,7 +521,7 @@ public class RedisHelpers {
 	 * @return true->成功,false->失败
 	 */
 	public boolean setExpire(RedisOperations<String, ?> redisOperations, String key) {
-		return setExpire(redisOperations, key, ConstRedis.DEFAULT_TIMEOUT_SECOND);
+		return setExpire(redisOperations, key, ConstCache.REDIS_DEFAULT_TIMEOUT_SECOND);
 	}
 
 	/**
@@ -578,7 +580,7 @@ public class RedisHelpers {
 	 * @param value value
 	 */
 	public <T> void setJsonExpire(String key, T value) {
-		setJsonExpire(key, value, ConstRedis.DEFAULT_TIMEOUT_SECOND);
+		setJsonExpire(key, value, ConstCache.REDIS_DEFAULT_TIMEOUT_SECOND);
 	}
 
 	/**
@@ -650,7 +652,7 @@ public class RedisHelpers {
 	 * @param values values
 	 */
 	public void setListLeftExpire(String key, List<Object> values) {
-		setListLeftExpire(key, values, ConstRedis.DEFAULT_TIMEOUT_SECOND);
+		setListLeftExpire(key, values, ConstCache.REDIS_DEFAULT_TIMEOUT_SECOND);
 	}
 
 	/**
@@ -704,7 +706,7 @@ public class RedisHelpers {
 	 * @param values values
 	 */
 	public void setListRightExpire(String key, List<Object> values) {
-		setListRightExpire(key, values, ConstRedis.DEFAULT_TIMEOUT_SECOND);
+		setListRightExpire(key, values, ConstCache.REDIS_DEFAULT_TIMEOUT_SECOND);
 	}
 
 	/**
@@ -759,7 +761,7 @@ public class RedisHelpers {
 	 * @param values 一个map对象
 	 */
 	public void setMapExpire(String redisKey, Map<Object, Object> values) {
-		setMapExpire(redisKey, values, ConstRedis.DEFAULT_TIMEOUT_SECOND);
+		setMapExpire(redisKey, values, ConstCache.REDIS_DEFAULT_TIMEOUT_SECOND);
 	}
 
 	/**
@@ -887,7 +889,7 @@ public class RedisHelpers {
 	 * @return 追加成功的个数
 	 */
 	public Long setSetExpire(String key, Object... values) {
-		return setSetExpire(key, ConstRedis.DEFAULT_TIMEOUT_SECOND, values);
+		return setSetExpire(key, ConstCache.REDIS_DEFAULT_TIMEOUT_SECOND, values);
 	}
 
 	/**

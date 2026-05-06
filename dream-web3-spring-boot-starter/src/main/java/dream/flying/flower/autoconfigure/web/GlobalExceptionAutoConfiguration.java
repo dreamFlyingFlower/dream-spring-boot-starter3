@@ -46,7 +46,7 @@ import lombok.extern.slf4j.Slf4j;
 @RestControllerAdvice
 @ConditionalOnMissingClass
 @ConditionalOnWebApplication
-@ConditionalOnProperty(prefix = ConstConfig.AUTO_GLOBAL_EXCEPTION, value = ConstConfig.ENABLED, matchIfMissing = true)
+@ConditionalOnProperty(prefix = ConstConfig.Auto.GLOBAL_EXCEPTION, value = ConstConfig.ENABLED, matchIfMissing = true)
 public class GlobalExceptionAutoConfiguration {
 
 	@ExceptionHandler(Throwable.class)

@@ -31,7 +31,7 @@ import dream.flying.flower.framework.constant.ConstConfig;
 @AutoConfiguration
 @ConditionalOnMissingClass
 @EnableConfigurationProperties(WhiteListProperties.class)
-@ConditionalOnProperty(prefix = ConstConfig.AUTO_WHITE_LIST, value = ConstConfig.ENABLED, matchIfMissing = true)
+@ConditionalOnProperty(prefix = ConstConfig.Auto.WHITE_LIST, value = ConstConfig.ENABLED, matchIfMissing = true)
 public class WhiteListAutoConfiguration implements WebMvcConfigurer, ApplicationContextAware {
 
 	private WhiteListProperties whiteListProperties;

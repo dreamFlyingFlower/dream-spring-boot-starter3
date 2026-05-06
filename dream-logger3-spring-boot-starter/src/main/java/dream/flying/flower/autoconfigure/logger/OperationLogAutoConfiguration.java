@@ -53,7 +53,7 @@ import dream.flying.flower.framework.constant.ConstConfig;
 @Import({ AsyncConfig.class, FlywayPropertiesBeanProcessor.class })
 @EnableAspectJAutoProxy(proxyTargetClass = true, exposeProxy = true)
 @AutoConfiguration(before = { LogbookAutoConfiguration.class }, after = { FlywayAutoConfiguration.class })
-@ConditionalOnProperty(prefix = ConstConfig.AUTO_LOGGER, name = ConstConfig.ENABLED, havingValue = "true",
+@ConditionalOnProperty(prefix = ConstConfig.Auto.LOGGER, name = ConstConfig.ENABLED, havingValue = "true",
 		matchIfMissing = true)
 public class OperationLogAutoConfiguration {
 

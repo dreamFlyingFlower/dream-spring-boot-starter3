@@ -14,7 +14,7 @@ import dream.flying.flower.ConstString;
 import dream.flying.flower.autoconfigure.logger.entity.OperationLogEntity;
 import dream.flying.flower.autoconfigure.logger.properties.DreamLogProperties;
 import dream.flying.flower.autoconfigure.logger.service.OperationLogService;
-import dream.flying.flower.framework.constant.ConstNetwork;
+import dream.flying.flower.framework.constant.ConstHttp;
 import dream.flying.flower.framework.json.JsonHelpers;
 import dream.flying.flower.lang.StrHelper;
 import lombok.RequiredArgsConstructor;
@@ -111,7 +111,7 @@ public class DatabaseSink implements Sink {
 		if (checkIp(ip)) {
 			ip = request.getRemote();
 		}
-		return "0:0:0:0:0:0:0:1".equals(ip) ? ConstNetwork.LOCAL_IP : getMultistageReverseProxyIp(ip);
+		return "0:0:0:0:0:0:0:1".equals(ip) ? ConstHttp.LOCAL_IP : getMultistageReverseProxyIp(ip);
 	}
 
 	/**

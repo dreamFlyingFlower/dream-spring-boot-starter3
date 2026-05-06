@@ -5,7 +5,7 @@ import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
 import dream.flying.flower.autoconfigure.redis.helper.RedisHelpers;
-import dream.flying.flower.framework.constant.ConstRedis;
+import dream.flying.flower.framework.constant.ConstCache;
 import dream.flying.flower.framework.core.helper.IpHelpers;
 import dream.flying.flower.limit.LimitAccessHandler;
 import dream.flying.flower.limit.annotation.LimitAccess;
@@ -30,7 +30,8 @@ public class DefaultAccessLimitHandler implements LimitAccessHandler {
 		ServletRequestAttributes servletRequestAttributes =
 				(ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
 		HttpServletRequest request = servletRequestAttributes.getRequest();
-		String key = ConstRedis.buildKey(IpHelpers.getIp(request), request.getContextPath(), request.getServletPath());
+		String key =
+				ConstCache.buildRedisKey(IpHelpers.getIp(request), request.getContextPath(), request.getServletPath());
 		Object count = redisHelpers.get(key);
 		if (count == null) {
 			redisHelpers.setExpire(key, 1, limitAccess.value(), limitAccess.timeUnit());

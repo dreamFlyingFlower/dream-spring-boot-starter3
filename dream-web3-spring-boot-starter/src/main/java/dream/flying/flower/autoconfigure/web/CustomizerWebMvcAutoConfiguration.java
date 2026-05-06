@@ -53,7 +53,7 @@ import dream.flying.flower.framework.web.serial.LongToStringSerializer;
 @ConditionalOnMissingClass
 @EnableConfigurationProperties(DreamWebMvcProperties.class)
 @ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.SERVLET)
-@ConditionalOnProperty(prefix = ConstConfig.AUTO_WEB_MVC, value = ConstConfig.ENABLED, matchIfMissing = true)
+@ConditionalOnProperty(prefix = ConstConfig.Auto.WEB_MVC, value = ConstConfig.ENABLED, matchIfMissing = true)
 public class CustomizerWebMvcAutoConfiguration implements WebMvcConfigurer {
 
 	private DreamWebMvcProperties selfWebMvcProperties;

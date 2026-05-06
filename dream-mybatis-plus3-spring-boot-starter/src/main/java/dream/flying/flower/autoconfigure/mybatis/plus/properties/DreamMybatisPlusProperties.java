@@ -17,7 +17,7 @@ import lombok.Data;
  * @git {@link https://gitee.com/dreamFlyingFlower}
  */
 @Data
-@ConfigurationProperties(prefix = ConstConfig.AUTO_MYBATIS_PLUS)
+@ConfigurationProperties(prefix = ConstConfig.Auto.MYBATIS_PLUS)
 public class DreamMybatisPlusProperties {
 
 	/**

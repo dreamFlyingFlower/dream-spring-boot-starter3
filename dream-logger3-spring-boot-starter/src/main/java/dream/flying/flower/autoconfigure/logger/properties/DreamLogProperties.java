@@ -17,7 +17,7 @@ import lombok.Data;
  * @git {@link https://github.com/dreamFlyingFlower}
  */
 @Data
-@ConfigurationProperties(prefix = ConstConfig.AUTO_LOGGER)
+@ConfigurationProperties(prefix = ConstConfig.Auto.LOGGER)
 public class DreamLogProperties {
 
 	/**

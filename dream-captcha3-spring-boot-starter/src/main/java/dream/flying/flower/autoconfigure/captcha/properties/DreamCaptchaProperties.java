@@ -24,7 +24,7 @@ import lombok.Data;
  * @git {@link https://github.com/dreamFlyingFlower}
  */
 @Data
-@ConfigurationProperties(ConstConfig.AUTO_CAPTCHA)
+@ConfigurationProperties(ConstConfig.Auto.CAPTCHA)
 public class DreamCaptchaProperties {
 
 	private boolean enabled;
