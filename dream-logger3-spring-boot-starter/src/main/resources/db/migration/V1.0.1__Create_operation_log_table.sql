@@ -28,7 +28,7 @@ CREATE TABLE IF NOT EXISTS `sys_operation_log` (
     `created_by` bigint UNSIGNED NULL DEFAULT NULL COMMENT '创建人',
     `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     `updated_by` bigint UNSIGNED NULL DEFAULT NULL COMMENT '更新人',
-    `update_at` datetime NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    `updated_at` datetime NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     `deleted` tinyint UNSIGNED NOT NULL DEFAULT 0 COMMENT '是否删除',
     PRIMARY KEY (`id`) USING BTREE,
     INDEX idx_trace_id (trace_id),

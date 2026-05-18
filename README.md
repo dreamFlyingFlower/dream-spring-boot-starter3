@@ -20,7 +20,10 @@
 
 
 * dream-spring-boot-starter-cryption3:加密相关自动配置
+* dream-spring-boot-starter-dict3:字典管理相关自动配置
 * dream-spring-boot-starter-excel3:excel相关自动配置
+* dream-spring-boot-starter-i18n3:国际化相关自动配置
+* dream-spring-boot-starter-logger3:日志相关自动配置
 * dream-spring-boot-starter-redis3:redis相关自动配置
 * dream-spring-boot-starter-security3:安全相关自动配置
 * dream-spring-boot-starter-storage3:存储相关自动配置
@@ -141,6 +144,78 @@
 * `EncryptResponseProperties`:全局加密配置
 * `DecryptRequest`:解密注解,在需要解密的方法上添加
 * `DecryptRequestProperties`:全局解密配置
+
+
+
+# dict
+
+
+
+## 概述
+
+
+
+* 提供字典和字典项管理功能
+* 支持 Redis 缓存预热和定时刷新
+* 自动创建数据库表结构
+
+
+
+## 配置项
+
+
+
+* `dream.dict.enabled`:是否启用字典功能,默认true
+* `dream.dict.cache-expire-hours`:缓存过期时间(小时),默认12
+* `dream.dict.warmup-enabled`:是否启用缓存预热,默认true
+
+
+
+## 使用方式
+
+
+
+* 引入当前starter
+* 配置数据库连接
+* 系统启动时自动创建 sys_dict 和 sys_dict_item 表
+* 注入 DictService 和 DictItemService 使用
+
+
+
+# i18n
+
+
+
+## 概述
+
+
+
+* 提供国际化消息管理功能
+* 支持多语言切换
+* 基于数据库存储国际化消息
+* 支持 Redis 缓存优化性能
+
+
+
+## 配置项
+
+
+
+* `dream.i18n.enabled`:是否启用国际化功能,默认true
+* `dream.i18n.default-locale`:默认语言,默认zh_CN
+* `dream.i18n.cache-expire-hours`:缓存过期时间(小时),默认24
+
+
+
+## 使用方式
+
+
+
+* 引入当前starter
+* 配置数据库连接
+* 系统启动时自动创建 sys_localization 表
+* 注入 I18nService 使用
+* 通过 URL 参数 ?lang=en_US 切换语言
 
 
 
