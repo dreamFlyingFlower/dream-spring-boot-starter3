@@ -1,6 +1,5 @@
 package dream.flying.flower.autoconfigure.dict.entity;
 
-import java.io.Serializable;
 import java.time.LocalDateTime;
 
 import com.baomidou.mybatisplus.annotation.FieldFill;
@@ -13,24 +12,29 @@ import com.baomidou.mybatisplus.annotation.TableName;
 
 import dream.flying.flower.db.annotation.AutoCode;
 import dream.flying.flower.db.annotation.Unique;
+import dream.flying.flower.framework.mybatis.plus.entity.AbstractEntity;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
+import lombok.experimental.SuperBuilder;
 
 /**
  * Dict item entity class
  *
  * @author 飞花梦影
  * @date 2026-04-13 13:49:19
- * @git {@link https://github.com/mygodness100}
+ * @git {@link https://github.com/dreamFlyingFlower}
  */
-@Data
-@TableName("sys_dict_item")
-@Builder
+@Getter
+@Setter
+@ToString
+@SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
-public class DictItemEntity implements Serializable {
+@TableName("sys_dict_item")
+public class DictItemEntity extends AbstractEntity {
 
 	private static final long serialVersionUID = 1L;
 

@@ -2,6 +2,7 @@ package dream.flying.flower.autoconfigure.dict.properties;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
+import dream.flying.flower.framework.constant.ConstConfig;
 import lombok.Data;
 
 /**
@@ -9,9 +10,10 @@ import lombok.Data;
  *
  * @author 飞花梦影
  * @date 2026-05-18
+ * @git {@link https://github.com/dreamFlyingFlower }
  */
 @Data
-@ConfigurationProperties(prefix = "dream.dict")
+@ConfigurationProperties(prefix = ConstConfig.Sys.DICT)
 public class DictProperties {
 
 	/**

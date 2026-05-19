@@ -56,15 +56,15 @@ import dream.flying.flower.framework.web.serial.LongToStringSerializer;
 @ConditionalOnProperty(prefix = ConstConfig.Auto.WEB_MVC, value = ConstConfig.ENABLED, matchIfMissing = true)
 public class CustomizerWebMvcAutoConfiguration implements WebMvcConfigurer {
 
-	private DreamWebMvcProperties selfWebMvcProperties;
+	private DreamWebMvcProperties dreamWebMvcProperties;
 
 	private WebMvcProperties webMvcProperties;
 
 	private ObjectMapper objectMapper;
 
-	public CustomizerWebMvcAutoConfiguration(DreamWebMvcProperties selfWebMvcProperties,
+	public CustomizerWebMvcAutoConfiguration(DreamWebMvcProperties dreamWebMvcProperties,
 			WebMvcProperties webMvcProperties, ObjectMapper objectMapper) {
-		this.selfWebMvcProperties = selfWebMvcProperties;
+		this.dreamWebMvcProperties = dreamWebMvcProperties;
 		this.webMvcProperties = webMvcProperties;
 		this.objectMapper = objectMapper;
 	}
@@ -89,11 +89,11 @@ public class CustomizerWebMvcAutoConfiguration implements WebMvcConfigurer {
 		selfObjectMapper.setConfig(this.objectMapper.getSerializationConfig());
 		selfObjectMapper.setConfig(this.objectMapper.getDeserializationConfig());
 
-		if (selfWebMvcProperties.getEnableLocalDateTimeFormat()) {
+		if (dreamWebMvcProperties.getEnableLocalDateTimeFormat()) {
 			convertLocalDateTime(selfObjectMapper);
 		}
 
-		if (selfWebMvcProperties.getEnableLongToString()) {
+		if (dreamWebMvcProperties.getEnableLongToString()) {
 			convertLongToString(selfObjectMapper);
 		}
 
@@ -140,7 +140,7 @@ public class CustomizerWebMvcAutoConfiguration implements WebMvcConfigurer {
 	 * @param selfObjectMapper
 	 */
 	private void convertLongToString(ObjectMapper selfObjectMapper) {
-		SerializeLong serializeLong = selfWebMvcProperties.getSerialize().getSerializeLong();
+		SerializeLong serializeLong = dreamWebMvcProperties.getSerialize().getSerializeLong();
 		if (Objects.isNull(serializeLong) || SerializeLong.DEFAULT == serializeLong) {
 			SimpleModule simpleModule = new SimpleModule();
 			simpleModule.addSerializer(Long.class, new LongToStringSerializer());

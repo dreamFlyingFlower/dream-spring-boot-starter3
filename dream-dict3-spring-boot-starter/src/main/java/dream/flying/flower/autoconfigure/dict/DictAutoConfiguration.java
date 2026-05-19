@@ -7,7 +7,6 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.flyway.FlywayAutoConfiguration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
-import org.springframework.scheduling.annotation.EnableScheduling;
 
 import dream.flying.flower.autoconfigure.dict.cache.DictCacheWarmupService;
 import dream.flying.flower.autoconfigure.dict.properties.DictProperties;
@@ -21,11 +20,10 @@ import dream.flying.flower.framework.constant.ConstConfig;
  * @author 飞花梦影
  * @date 2026-05-18
  */
+@EnableConfigurationProperties({ DictProperties.class })
 @AutoConfiguration(after = { FlywayAutoConfiguration.class })
 @MapperScan("dream.flying.flower.autoconfigure.dict.mapper")
-@EnableConfigurationProperties({ DictProperties.class })
-@EnableScheduling
-@ConditionalOnProperty(prefix = ConstConfig.PREFIX + ".dict", name = ConstConfig.ENABLED, havingValue = "true",
+@ConditionalOnProperty(prefix = ConstConfig.Sys.DICT, name = ConstConfig.ENABLED, havingValue = "true",
 		matchIfMissing = true)
 public class DictAutoConfiguration {
 
@@ -43,7 +41,8 @@ public class DictAutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean(DictCacheWarmupService.class)
-	@ConditionalOnProperty(prefix = "dream.dict", name = "warmup-enabled", havingValue = "true", matchIfMissing = true)
+	@ConditionalOnProperty(prefix = ConstConfig.Sys.DICT, name = "warmup-enabled", havingValue = "true",
+			matchIfMissing = true)
 	DictCacheWarmupService dictCacheWarmupService() {
 		return new DictCacheWarmupService();
 	}

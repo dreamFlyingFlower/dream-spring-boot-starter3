@@ -17,7 +17,7 @@ import org.springframework.web.servlet.i18n.LocaleChangeInterceptor;
 import org.springframework.web.servlet.i18n.SessionLocaleResolver;
 
 import dream.flying.flower.autoconfigure.i18n.properties.I18nProperties;
-import dream.flying.flower.autoconfigure.i18n.service.I18nService;
+import dream.flying.flower.autoconfigure.i18n.service.LocalizationService;
 import dream.flying.flower.framework.constant.ConstConfig;
 
 /**
@@ -34,16 +34,16 @@ import dream.flying.flower.framework.constant.ConstConfig;
 public class I18nAutoConfiguration implements WebMvcConfigurer {
 
 	@Bean
-	@ConditionalOnMissingBean(I18nService.class)
-	I18nService i18nService(I18nProperties properties) {
-		I18nService service = new I18nService();
+	@ConditionalOnMissingBean(LocalizationService.class)
+	LocalizationService localizationService(I18nProperties properties) {
+		LocalizationService service = new LocalizationService();
 		service.setCacheExpireHours(properties.getCacheExpireHours());
 		return service;
 	}
 
 	@Bean
-	MessageSource messageSource(I18nService i18nService) {
-		return new CustomMessageSource(i18nService);
+	MessageSource messageSource(LocalizationService localizationService) {
+		return new CustomMessageSource(localizationService);
 	}
 
 	@Bean
@@ -51,7 +51,7 @@ public class I18nAutoConfiguration implements WebMvcConfigurer {
 		SessionLocaleResolver resolver = new SessionLocaleResolver();
 		String[] parts = properties.getDefaultLocale().split("_");
 		if (parts.length == 2) {
-			resolver.setDefaultLocale(new Locale(parts[0], parts[1]));
+			resolver.setDefaultLocale(Locale.of(parts[0], parts[1]));
 		} else {
 			resolver.setDefaultLocale(Locale.SIMPLIFIED_CHINESE);
 		}
@@ -72,16 +72,16 @@ public class I18nAutoConfiguration implements WebMvcConfigurer {
 
 	static class CustomMessageSource implements MessageSource {
 
-		private final I18nService i18nService;
+		private final LocalizationService localizationService;
 
-		CustomMessageSource(I18nService i18nService) {
-			this.i18nService = i18nService;
+		CustomMessageSource(LocalizationService localizationService) {
+			this.localizationService = localizationService;
 		}
 
 		@Override
 		public String getMessage(String code, Object[] args, String defaultMessage, Locale locale) {
 			String langCode = locale.getLanguage() + "_" + locale.getCountry();
-			String message = i18nService.getMessage(langCode, code);
+			String message = localizationService.getMessage(langCode, code);
 			return message != null ? message : (defaultMessage != null ? defaultMessage : code);
 		}
 
@@ -91,7 +91,8 @@ public class I18nAutoConfiguration implements WebMvcConfigurer {
 		}
 
 		@Override
-		public String getMessage(org.springframework.context.MessageSourceResolvable resolvable, Locale locale) throws org.springframework.context.NoSuchMessageException {
+		public String getMessage(org.springframework.context.MessageSourceResolvable resolvable, Locale locale)
+				throws org.springframework.context.NoSuchMessageException {
 			String[] codes = resolvable.getCodes();
 			if (codes != null) {
 				for (String code : codes) {

@@ -4,16 +4,19 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.data.redis.RedisProperties;
+import org.springframework.data.redis.connection.DataType;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ScanOptions;
+import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.stereotype.Service;
 
+import dream.flying.flower.autoconfigure.redis.helper.RedisFactoryHelpers;
 import dream.flying.flower.web.dto.RedisDataRequest;
 import dream.flying.flower.web.monitor.RedisDbSwitchMonitor;
 import lombok.extern.slf4j.Slf4j;
@@ -33,7 +36,13 @@ public class RedisManageService {
 	private RedisTemplate<String, Object> redisTemplate;
 
 	@Autowired
-	private RedisConnectionFactory connectionFactory;
+	private RedisConnectionFactory defaultConnectionFactory;
+
+	@Autowired
+	private RedisProperties redisProperties;
+
+	@Autowired
+	private RedisFactoryHelpers redisFactoryHelpers;
 
 	@Autowired(required = false)
 	private RedisDbSwitchMonitor monitor;
@@ -47,32 +56,16 @@ public class RedisManageService {
 	 * @param dbIndex 数据库索引,null则使用默认数据库
 	 * @param operation Redis操作函数
 	 * @return 操作结果
+	 * @throws Exception
 	 */
-	private <T> T executeWithConnection(Integer dbIndex, RedisOperation<T> operation) {
-		RedisConnection connection = null;
-		try {
-			// 创建新的连接
-			connection = connectionFactory.getConnection();
-			
-			// 如果指定了数据库索引,切换到目标数据库
-			if (dbIndex != null) {
-				connection.select(dbIndex);
-			}
-			
+	private <T> T executeWithConnection(Integer dbIndex, RedisOperation<T> operation) throws Exception {
+		try (RedisConnection connection = redisFactoryHelpers.getConnectionFactory(dbIndex).getConnection();) {
 			// 执行操作
 			return operation.execute(connection);
 		} catch (Exception e) {
 			log.error("Redis操作失败", e);
 			throw e;
 		} finally {
-			// 关闭连接
-			if (connection != null) {
-				try {
-					connection.close();
-				} catch (Exception e) {
-					log.error("关闭连接失败", e);
-				}
-			}
 			// 记录监控数据
 			if (monitor != null) {
 				monitor.recordRequest(dbIndex, dbIndex != null);
@@ -85,6 +78,7 @@ public class RedisManageService {
 	 */
 	@FunctionalInterface
 	private interface RedisOperation<T> {
+
 		T execute(RedisConnection connection) throws Exception;
 	}
 
@@ -117,15 +111,15 @@ public class RedisManageService {
 		RedisConnection connection = null;
 		try {
 			// 创建新的连接
-			connection = connectionFactory.getConnection();
-			
+			connection = defaultConnectionFactory.getConnection();
+
 			// 如果指定了数据库索引,切换到目标数据库
 			if (dbIndex != null) {
 				connection.select(dbIndex);
 			}
-			
+
 			List<String> result = new ArrayList<>();
-			Set<byte[]> keys = connection.keys(pattern.getBytes());
+			Set<byte[]> keys = connection.keyCommands().keys(pattern.getBytes());
 			if (keys != null) {
 				for (byte[] key : keys) {
 					result.add(new String(key));
@@ -164,7 +158,7 @@ public class RedisManageService {
 			return executeWithConnection(dbIndex, connection -> {
 				List<String> result = new ArrayList<>();
 				ScanOptions options = ScanOptions.scanOptions().match(pattern).count(count).build();
-				Cursor<byte[]> cursor = connection.scan(options);
+				Cursor<byte[]> cursor = connection.keyCommands().scan(options);
 				while (cursor.hasNext()) {
 					result.add(new String(cursor.next()));
 				}
@@ -196,6 +190,11 @@ public class RedisManageService {
 		}
 	}
 
+	@SuppressWarnings("unchecked")
+	private byte[] serialize(Object value) {
+		return ((RedisSerializer<Object>) redisTemplate.getValueSerializer()).serialize(value);
+	}
+
 	/**
 	 * 设置字符串值
 	 *
@@ -205,17 +204,18 @@ public class RedisManageService {
 	 * @param dbIndex 数据库索引,null则使用默认数据库
 	 * @return 是否成功
 	 */
-	public Boolean setString(String key, Object value, Long expireTime, Integer dbIndex) {
+	public <T> Boolean setString(String key, T value, Long expireTime, Integer dbIndex) {
 		try {
 			return executeWithConnection(dbIndex, connection -> {
 				byte[] keyBytes = key.getBytes();
-				byte[] valueBytes = redisTemplate.getValueSerializer().serialize(value);
-				
+				byte[] valueBytes = serialize(value);
+
 				if (expireTime != null && expireTime > 0) {
 					connection.stringCommands().setEx(keyBytes, expireTime, valueBytes);
 				} else {
 					connection.stringCommands().set(keyBytes, valueBytes);
 				}
+				connection.close();
 				return true;
 			});
 		} catch (Exception e) {
@@ -234,7 +234,7 @@ public class RedisManageService {
 	public Boolean delete(String key, Integer dbIndex) {
 		try {
 			return executeWithConnection(dbIndex, connection -> {
-				Long result = connection.del(key.getBytes());
+				Long result = connection.keyCommands().del(key.getBytes());
 				return result != null && result > 0;
 			});
 		} catch (Exception e) {
@@ -253,10 +253,8 @@ public class RedisManageService {
 	public Long deleteBatch(List<String> keys, Integer dbIndex) {
 		try {
 			return executeWithConnection(dbIndex, connection -> {
-				byte[][] keyBytes = keys.stream()
-						.map(String::getBytes)
-						.toArray(byte[][]::new);
-				return connection.del(keyBytes);
+				byte[][] keyBytes = keys.stream().map(String::getBytes).toArray(byte[][]::new);
+				return connection.keyCommands().del(keyBytes);
 			});
 		} catch (Exception e) {
 			log.error("批量删除Key失败", e);
@@ -274,8 +272,7 @@ public class RedisManageService {
 	public Boolean exists(String key, Integer dbIndex) {
 		try {
 			return executeWithConnection(dbIndex, connection -> {
-				Long result = connection.exists(key.getBytes());
-				return result != null && result > 0;
+				return connection.keyCommands().exists(key.getBytes());
 			});
 		} catch (Exception e) {
 			log.error("判断Key存在性失败, key: {}", key, e);
@@ -294,7 +291,7 @@ public class RedisManageService {
 	public Boolean expire(String key, Long expireTime, Integer dbIndex) {
 		try {
 			return executeWithConnection(dbIndex, connection -> {
-				return connection.expire(key.getBytes(), expireTime);
+				return connection.keyCommands().expire(key.getBytes(), expireTime);
 			});
 		} catch (Exception e) {
 			log.error("设置过期时间失败, key: {}", key, e);
@@ -312,7 +309,7 @@ public class RedisManageService {
 	public Long getExpire(String key, Integer dbIndex) {
 		try {
 			return executeWithConnection(dbIndex, connection -> {
-				return connection.ttl(key.getBytes());
+				return connection.keyCommands().ttl(key.getBytes());
 			});
 		} catch (Exception e) {
 			log.error("获取过期时间失败, key: {}", key, e);
@@ -382,7 +379,7 @@ public class RedisManageService {
 			return executeWithConnection(dbIndex, connection -> {
 				byte[] keyBytes = key.getBytes();
 				byte[] fieldBytes = hashKey.getBytes();
-				byte[] valueBytes = redisTemplate.getValueSerializer().serialize(value);
+				byte[] valueBytes = serialize(value);
 				connection.hashCommands().hSet(keyBytes, fieldBytes, valueBytes);
 				return true;
 			});
@@ -404,9 +401,7 @@ public class RedisManageService {
 		try {
 			return executeWithConnection(dbIndex, connection -> {
 				byte[] keyBytes = key.getBytes();
-				byte[][] fieldBytes = hashKeys.stream()
-						.map(String::getBytes)
-						.toArray(byte[][]::new);
+				byte[][] fieldBytes = hashKeys.stream().map(String::getBytes).toArray(byte[][]::new);
 				return connection.hashCommands().hDel(keyBytes, fieldBytes);
 			});
 		} catch (Exception e) {
@@ -453,7 +448,7 @@ public class RedisManageService {
 		try {
 			return executeWithConnection(dbIndex, connection -> {
 				byte[] keyBytes = key.getBytes();
-				byte[] valueBytes = redisTemplate.getValueSerializer().serialize(value);
+				byte[] valueBytes = serialize(value);
 				return connection.listCommands().lPush(keyBytes, valueBytes);
 			});
 		} catch (Exception e) {
@@ -474,7 +469,7 @@ public class RedisManageService {
 		try {
 			return executeWithConnection(dbIndex, connection -> {
 				byte[] keyBytes = key.getBytes();
-				byte[] valueBytes = redisTemplate.getValueSerializer().serialize(value);
+				byte[] valueBytes = serialize(value);
 				return connection.listCommands().rPush(keyBytes, valueBytes);
 			});
 		} catch (Exception e) {
@@ -496,7 +491,7 @@ public class RedisManageService {
 		try {
 			return executeWithConnection(dbIndex, connection -> {
 				byte[] keyBytes = key.getBytes();
-				byte[] valueBytes = redisTemplate.getValueSerializer().serialize(value);
+				byte[] valueBytes = serialize(value);
 				return connection.listCommands().lRem(keyBytes, count, valueBytes);
 			});
 		} catch (Exception e) {
@@ -543,9 +538,7 @@ public class RedisManageService {
 		try {
 			return executeWithConnection(dbIndex, connection -> {
 				byte[] keyBytes = key.getBytes();
-				byte[][] valueBytes = values.stream()
-						.map(v -> redisTemplate.getValueSerializer().serialize(v))
-						.toArray(byte[][]::new);
+				byte[][] valueBytes = values.stream().map(v -> serialize(v)).toArray(byte[][]::new);
 				return connection.setCommands().sAdd(keyBytes, valueBytes);
 			});
 		} catch (Exception e) {
@@ -566,9 +559,7 @@ public class RedisManageService {
 		try {
 			return executeWithConnection(dbIndex, connection -> {
 				byte[] keyBytes = key.getBytes();
-				byte[][] valueBytes = values.stream()
-						.map(v -> redisTemplate.getValueSerializer().serialize(v))
-						.toArray(byte[][]::new);
+				byte[][] valueBytes = values.stream().map(v -> serialize(v)).toArray(byte[][]::new);
 				return connection.setCommands().sRem(keyBytes, valueBytes);
 			});
 		} catch (Exception e) {
@@ -616,7 +607,7 @@ public class RedisManageService {
 		try {
 			return executeWithConnection(dbIndex, connection -> {
 				byte[] keyBytes = key.getBytes();
-				byte[] valueBytes = redisTemplate.getValueSerializer().serialize(value);
+				byte[] valueBytes = serialize(value);
 				return connection.zSetCommands().zAdd(keyBytes, score, valueBytes);
 			});
 		} catch (Exception e) {
@@ -637,9 +628,7 @@ public class RedisManageService {
 		try {
 			return executeWithConnection(dbIndex, connection -> {
 				byte[] keyBytes = key.getBytes();
-				byte[][] valueBytes = values.stream()
-						.map(v -> redisTemplate.getValueSerializer().serialize(v))
-						.toArray(byte[][]::new);
+				byte[][] valueBytes = values.stream().map(v -> serialize(v)).toArray(byte[][]::new);
 				return connection.zSetCommands().zRem(keyBytes, valueBytes);
 			});
 		} catch (Exception e) {
@@ -649,48 +638,23 @@ public class RedisManageService {
 	}
 
 	/**
-	 * 切换数据库
-	 *
-	 * @param dbIndex 数据库索引
-	 */
-	public void selectDatabase(int dbIndex) {
-		try {
-			RedisConnection connection = connectionFactory.getConnection();
-			connection.dbSelect(dbIndex);
-			connection.close();
-			log.info("切换到数据库: {}", dbIndex);
-		} catch (Exception e) {
-			log.error("切换数据库失败, dbIndex: {}", dbIndex, e);
-			throw new RuntimeException("切换数据库失败: " + e.getMessage());
-		}
-	}
-
-	/**
 	 * 获取当前数据库索引
 	 *
 	 * @return 数据库索引
 	 */
 	public Integer getCurrentDatabase() {
-		try {
-			RedisConnection connection = connectionFactory.getConnection();
-			Integer dbIndex = connection.getDB();
-			connection.close();
-			return dbIndex;
-		} catch (Exception e) {
-			log.error("获取当前数据库索引失败", e);
-			return 0;
-		}
+		return redisProperties.getDatabase();
 	}
 
 	/**
-	 * 清空当前数据库
+	 * 清空数据库,若不指定数据库索引,清除当前数据库
 	 *
 	 * @return 是否成功
 	 */
-	public Boolean flushDatabase() {
+	public Boolean flushDb(Integer databaseIndex) {
 		try {
-			RedisConnection connection = connectionFactory.getConnection();
-			connection.flushDb();
+			RedisConnection connection = redisFactoryHelpers.getConnectionFactory(databaseIndex).getConnection();
+			connection.serverCommands().flushDb();
 			connection.close();
 			log.info("清空当前数据库成功");
 			return true;
@@ -707,8 +671,8 @@ public class RedisManageService {
 	 */
 	public Boolean flushAll() {
 		try {
-			RedisConnection connection = connectionFactory.getConnection();
-			connection.flushAll();
+			RedisConnection connection = redisFactoryHelpers.getConnectionFactory().getConnection();
+			connection.serverCommands().flushAll();
 			connection.close();
 			log.info("清空所有数据库成功");
 			return true;
@@ -725,28 +689,30 @@ public class RedisManageService {
 	 * @return 操作结果
 	 */
 	public Object executeByDataType(RedisDataRequest request) {
-		String dataType = request.getDataType();
+		String requestType = request.getDataType();
 		Integer dbIndex = request.getDbIndex();
-		if (dataType == null) {
+		if (requestType == null) {
 			return getString(request.getKey(), dbIndex);
 		}
 
-		switch (dataType.toLowerCase()) {
-			case "string":
-				return getString(request.getKey(), dbIndex);
-			case "hash":
-				if (request.getHashKey() != null) {
-					return getHashField(request.getKey(), request.getHashKey(), dbIndex);
-				}
-				return getHash(request.getKey(), dbIndex);
-			case "list":
-				return getList(request.getKey(), dbIndex);
-			case "set":
-				return getSet(request.getKey(), dbIndex);
-			case "zset":
-				return getZSet(request.getKey(), dbIndex);
-			default:
-				return getString(request.getKey(), dbIndex);
+		DataType dataType = DataType.fromCode(requestType);
+
+		switch (dataType) {
+		case STRING:
+			return getString(request.getKey(), dbIndex);
+		case HASH:
+			if (request.getHashKey() != null) {
+				return getHashField(request.getKey(), request.getHashKey(), dbIndex);
+			}
+			return getHash(request.getKey(), dbIndex);
+		case LIST:
+			return getList(request.getKey(), dbIndex);
+		case SET:
+			return getSet(request.getKey(), dbIndex);
+		case ZSET:
+			return getZSet(request.getKey(), dbIndex);
+		default:
+			return getString(request.getKey(), dbIndex);
 		}
 	}
 }

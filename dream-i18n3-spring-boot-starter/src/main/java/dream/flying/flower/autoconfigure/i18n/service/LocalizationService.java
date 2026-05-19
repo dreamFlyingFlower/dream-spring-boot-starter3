@@ -20,10 +20,10 @@ import lombok.extern.slf4j.Slf4j;
  *
  * @author 飞花梦影
  * @date 2026-04-13 13:49:19
- * @git {@link https://github.com/mygodness100}
+ * @git {@link https://github.com/dreamFlyingFlower}
  */
 @Slf4j
-public class I18nService {
+public class LocalizationService {
 
 	@Autowired
 	private LocalizationMapper localizationMapper;
@@ -56,8 +56,7 @@ public class I18nService {
 
 		// Query from database
 		List<LocalizationEntity> messages = localizationMapper
-				.selectList(new LambdaQueryWrapper<LocalizationEntity>()
-						.eq(LocalizationEntity::getLangCode, langCode)
+				.selectList(new LambdaQueryWrapper<LocalizationEntity>().eq(LocalizationEntity::getLang, langCode)
 						.eq(LocalizationEntity::getMessageCode, messageCode)
 						.eq(LocalizationEntity::getDeleted, 0));
 
@@ -85,7 +84,8 @@ public class I18nService {
 		try {
 			Map<Object, Object> cachedMap = redisTemplate.opsForHash().entries(cacheKey);
 			if (!cachedMap.isEmpty()) {
-				return cachedMap.entrySet().stream()
+				return cachedMap.entrySet()
+						.stream()
 						.collect(Collectors.toMap(e -> e.getKey().toString(), e -> e.getValue().toString()));
 			}
 		} catch (Exception e) {
@@ -94,8 +94,7 @@ public class I18nService {
 
 		// Query from database
 		List<LocalizationEntity> messages = localizationMapper
-				.selectList(new LambdaQueryWrapper<LocalizationEntity>()
-						.eq(LocalizationEntity::getLangCode, langCode)
+				.selectList(new LambdaQueryWrapper<LocalizationEntity>().eq(LocalizationEntity::getLang, langCode)
 						.eq(LocalizationEntity::getDeleted, 0));
 
 		Map<String, String> messageMap = messages.stream()
@@ -146,8 +145,8 @@ public class I18nService {
 	 * Get internationalized dict name
 	 *
 	 * @param messageCode message code
-	 * @param locale      locale
-	 * @return            internationalized dict name, or null if not exists
+	 * @param locale locale
+	 * @return internationalized dict name, or null if not exists
 	 */
 	public String getDictName(String messageCode, Locale locale) {
 		if (messageCode == null || messageCode.isEmpty()) {
@@ -161,8 +160,8 @@ public class I18nService {
 	 * Get internationalized dict item name
 	 *
 	 * @param messageCode message code
-	 * @param locale      locale
-	 * @return            internationalized dict item name, or null if not exists
+	 * @param locale locale
+	 * @return internationalized dict item name, or null if not exists
 	 */
 	public String getDictItemName(String messageCode, Locale locale) {
 		if (messageCode == null || messageCode.isEmpty()) {
@@ -176,15 +175,16 @@ public class I18nService {
 	 * Batch get dict internationalized content
 	 *
 	 * @param messageCodes message codes list
-	 * @param locale       locale
-	 * @return             Map<messageCode, internationalized content>
+	 * @param locale locale
+	 * @return Map<messageCode, internationalized content>
 	 */
 	public Map<String, String> getDictI18nNames(List<String> messageCodes, Locale locale) {
 		if (messageCodes == null || messageCodes.isEmpty()) {
 			return Map.of();
 		}
 		String langCode = getLangCode(locale);
-		return getAllMessages(langCode).entrySet().stream()
+		return getAllMessages(langCode).entrySet()
+				.stream()
 				.filter(entry -> messageCodes.contains(entry.getKey()))
 				.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 	}
@@ -193,15 +193,16 @@ public class I18nService {
 	 * Batch get dict item internationalized content
 	 *
 	 * @param messageCodes message codes list
-	 * @param locale       locale
-	 * @return             Map<messageCode, internationalized content>
+	 * @param locale locale
+	 * @return Map<messageCode, internationalized content>
 	 */
 	public Map<String, String> getDictItemI18nNames(List<String> messageCodes, Locale locale) {
 		if (messageCodes == null || messageCodes.isEmpty()) {
 			return Map.of();
 		}
 		String langCode = getLangCode(locale);
-		return getAllMessages(langCode).entrySet().stream()
+		return getAllMessages(langCode).entrySet()
+				.stream()
 				.filter(entry -> messageCodes.contains(entry.getKey()))
 				.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 	}
@@ -210,7 +211,7 @@ public class I18nService {
 	 * Get language code
 	 *
 	 * @param locale locale
-	 * @return       language code (e.g., zh_CN, en_US)
+	 * @return language code (e.g., zh_CN, en_US)
 	 */
 	private String getLangCode(Locale locale) {
 		if (locale == null) {

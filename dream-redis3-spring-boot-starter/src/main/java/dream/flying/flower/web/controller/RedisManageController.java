@@ -72,10 +72,8 @@ public class RedisManageController {
 	 * @return 数据值
 	 */
 	@GetMapping("/get")
-	public RedisDataResponse getData(@RequestParam String key,
-			@RequestParam(required = false) String dataType,
-			@RequestParam(required = false) String hashKey,
-			@RequestParam(required = false) Integer dbIndex) {
+	public RedisDataResponse getData(@RequestParam String key, @RequestParam(required = false) String dataType,
+			@RequestParam(required = false) String hashKey, @RequestParam(required = false) Integer dbIndex) {
 		try {
 			RedisDataRequest request = new RedisDataRequest();
 			request.setKey(key);
@@ -100,8 +98,8 @@ public class RedisManageController {
 	@PostMapping("/set")
 	public RedisDataResponse setData(@RequestBody RedisDataRequest request) {
 		try {
-			Boolean result = redisManageService.setString(request.getKey(), request.getValue(),
-					request.getExpireTime(), request.getDbIndex());
+			Boolean result = redisManageService.setString(request.getKey(), request.getValue(), request.getExpireTime(),
+					request.getDbIndex());
 			if (result) {
 				return RedisDataResponse.success("设置成功", null);
 			} else {
@@ -122,8 +120,8 @@ public class RedisManageController {
 	@PostMapping("/hash/set")
 	public RedisDataResponse setHashField(@RequestBody RedisDataRequest request) {
 		try {
-			Boolean result = redisManageService.setHashField(request.getKey(), request.getHashKey(),
-					request.getValue(), request.getDbIndex());
+			Boolean result = redisManageService.setHashField(request.getKey(), request.getHashKey(), request.getValue(),
+					request.getDbIndex());
 			if (result) {
 				return RedisDataResponse.success("设置Hash字段成功", null);
 			} else {
@@ -198,7 +196,8 @@ public class RedisManageController {
 	public RedisDataResponse addZSetMember(@RequestBody RedisDataRequest request) {
 		try {
 			Double score = request.getValue() instanceof Number ? ((Number) request.getValue()).doubleValue() : 0.0;
-			Boolean result = redisManageService.addZSetMember(request.getKey(), request.getKey(), score, request.getDbIndex());
+			Boolean result =
+					redisManageService.addZSetMember(request.getKey(), request.getKey(), score, request.getDbIndex());
 			if (result) {
 				return RedisDataResponse.success("添加成功", null);
 			} else {
@@ -240,7 +239,8 @@ public class RedisManageController {
 	 * @return 操作结果
 	 */
 	@DeleteMapping("/delete-batch")
-	public RedisDataResponse deleteBatchKeys(@RequestBody List<String> keys, @RequestParam(required = false) Integer dbIndex) {
+	public RedisDataResponse deleteBatchKeys(@RequestBody List<String> keys,
+			@RequestParam(required = false) Integer dbIndex) {
 		try {
 			Long count = redisManageService.deleteBatch(keys, dbIndex);
 			return RedisDataResponse.success("删除成功", count);
@@ -334,7 +334,8 @@ public class RedisManageController {
 	 * @return 操作结果
 	 */
 	@PutMapping("/expire")
-	public RedisDataResponse setExpire(@RequestParam String key, @RequestParam Long expireTime, @RequestParam(required = false) Integer dbIndex) {
+	public RedisDataResponse setExpire(@RequestParam String key, @RequestParam Long expireTime,
+			@RequestParam(required = false) Integer dbIndex) {
 		try {
 			Boolean result = redisManageService.expire(key, expireTime, dbIndex);
 			if (result) {
@@ -367,25 +368,6 @@ public class RedisManageController {
 	}
 
 	/**
-	 * 切换数据库
-	 *
-	 * @param dbIndex 数据库索引
-	 * @return 操作结果
-	 */
-	@PostMapping("/select-db")
-	public RedisDataResponse selectDatabase(@RequestParam Integer dbIndex) {
-		try {
-			redisManageService.selectDatabase(dbIndex);
-			Map<String, Object> data = new HashMap<>();
-			data.put("dbIndex", dbIndex);
-			return RedisDataResponse.success("切换数据库成功", data);
-		} catch (Exception e) {
-			log.error("切换数据库失败, dbIndex: {}", dbIndex, e);
-			return RedisDataResponse.error("切换数据库失败: " + e.getMessage());
-		}
-	}
-
-	/**
 	 * 获取当前数据库索引
 	 *
 	 * @return 当前数据库索引
@@ -404,14 +386,14 @@ public class RedisManageController {
 	}
 
 	/**
-	 * 清空当前数据库
+	 * 清空数据库
 	 *
 	 * @return 操作结果
 	 */
 	@DeleteMapping("/flush-db")
-	public RedisDataResponse flushDatabase() {
+	public RedisDataResponse flushDatabase(@RequestParam(required = false) Integer dbIndex) {
 		try {
-			Boolean result = redisManageService.flushDatabase();
+			Boolean result = redisManageService.flushDb(dbIndex);
 			if (result) {
 				return RedisDataResponse.success("清空当前数据库成功", null);
 			} else {

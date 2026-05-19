@@ -2,9 +2,10 @@ package dream.flying.flower.autoconfigure.i18n.mapper;
 
 import org.apache.ibatis.annotations.Mapper;
 
-import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-
 import dream.flying.flower.autoconfigure.i18n.entity.LocalizationEntity;
+import dream.flying.flower.autoconfigure.i18n.query.LocalizationQuery;
+import dream.flying.flower.autoconfigure.i18n.vo.LocalizationVO;
+import dream.flying.flower.framework.mybatis.plus.mapper.BaseMappers;
 
 /**
  * Localization Mapper interface
@@ -14,5 +15,5 @@ import dream.flying.flower.autoconfigure.i18n.entity.LocalizationEntity;
  * @git {@link https://github.com/mygodness100}
  */
 @Mapper
-public interface LocalizationMapper extends BaseMapper<LocalizationEntity> {
+public interface LocalizationMapper extends BaseMappers<LocalizationEntity, LocalizationVO, LocalizationQuery> {
 }
