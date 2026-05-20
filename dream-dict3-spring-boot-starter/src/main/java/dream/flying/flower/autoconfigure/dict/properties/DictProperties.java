@@ -13,13 +13,18 @@ import lombok.Data;
  * @git {@link https://github.com/dreamFlyingFlower }
  */
 @Data
-@ConfigurationProperties(prefix = ConstConfig.Sys.DICT)
+@ConfigurationProperties(prefix = ConstConfig.Auto.DICT)
 public class DictProperties {
 
 	/**
 	 * Enable dict feature
 	 */
 	private boolean enabled = true;
+
+	/**
+	 * Enable endpoint
+	 */
+	private boolean enabledEndpoint = true;
 
 	/**
 	 * Cache expire time in hours

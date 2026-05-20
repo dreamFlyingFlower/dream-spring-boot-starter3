@@ -12,6 +12,8 @@ import dream.flying.flower.autoconfigure.dict.cache.DictCacheWarmupService;
 import dream.flying.flower.autoconfigure.dict.properties.DictProperties;
 import dream.flying.flower.autoconfigure.dict.service.DictItemService;
 import dream.flying.flower.autoconfigure.dict.service.DictService;
+import dream.flying.flower.autoconfigure.dict.service.impl.DictItemServiceImpl;
+import dream.flying.flower.autoconfigure.dict.service.impl.DictServiceImpl;
 import dream.flying.flower.framework.constant.ConstConfig;
 
 /**
@@ -23,25 +25,25 @@ import dream.flying.flower.framework.constant.ConstConfig;
 @EnableConfigurationProperties({ DictProperties.class })
 @AutoConfiguration(after = { FlywayAutoConfiguration.class })
 @MapperScan("dream.flying.flower.autoconfigure.dict.mapper")
-@ConditionalOnProperty(prefix = ConstConfig.Sys.DICT, name = ConstConfig.ENABLED, havingValue = "true",
+@ConditionalOnProperty(prefix = ConstConfig.Auto.DICT, name = ConstConfig.ENABLED, havingValue = "true",
 		matchIfMissing = true)
 public class DictAutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean(DictService.class)
 	DictService dictService() {
-		return new DictService();
+		return new DictServiceImpl();
 	}
 
 	@Bean
 	@ConditionalOnMissingBean(DictItemService.class)
 	DictItemService dictItemService() {
-		return new DictItemService();
+		return new DictItemServiceImpl();
 	}
 
 	@Bean
 	@ConditionalOnMissingBean(DictCacheWarmupService.class)
-	@ConditionalOnProperty(prefix = ConstConfig.Sys.DICT, name = "warmup-enabled", havingValue = "true",
+	@ConditionalOnProperty(prefix = ConstConfig.Auto.DICT, name = "warmup-enabled", havingValue = "true",
 			matchIfMissing = true)
 	DictCacheWarmupService dictCacheWarmupService() {
 		return new DictCacheWarmupService();

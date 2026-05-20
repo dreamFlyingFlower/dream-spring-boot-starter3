@@ -26,6 +26,11 @@ public class DreamLogProperties {
 	private boolean enabled = true;
 
 	/**
+	 * 是否启用终端节点
+	 */
+	private boolean enabledEndpoint = true;
+
+	/**
 	 * 应用名称
 	 */
 	private String appName;

@@ -2,6 +2,7 @@ package dream.flying.flower.autoconfigure.logger.endpoint;
 
 import java.util.List;
 
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -12,6 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 import dream.flying.flower.autoconfigure.logger.query.OperationLogQuery;
 import dream.flying.flower.autoconfigure.logger.service.OperationLogService;
 import dream.flying.flower.autoconfigure.logger.vo.OperationLogVO;
+import dream.flying.flower.framework.constant.ConstConfig;
 import dream.flying.flower.framework.web.controller.BaseController;
 import dream.flying.flower.result.Result;
 import io.swagger.v3.oas.annotations.Operation;
@@ -27,7 +29,9 @@ import lombok.AllArgsConstructor;
  */
 @RestController
 @AllArgsConstructor
-@RequestMapping("/operationLog")
+@RequestMapping("/operation-log")
+@ConditionalOnProperty(prefix = ConstConfig.Auto.LOGGER, name = ConstConfig.ENABLED_ENDPOINT, havingValue = "true",
+		matchIfMissing = true)
 public class OperationLogEndpoint implements BaseController {
 
 	private final OperationLogService operationLogService;
@@ -39,8 +43,8 @@ public class OperationLogEndpoint implements BaseController {
 	}
 
 	@Operation(summary = "查询", description = "分页或不分页查询", method = "GET")
-	@GetMapping(value = { "listPage" })
-	public Result<List<OperationLogVO>> listPage(OperationLogQuery operationLogQuery) {
+	@GetMapping(value = { "list" })
+	public Result<List<OperationLogVO>> list(OperationLogQuery operationLogQuery) {
 		return operationLogService.listPage(operationLogQuery);
 	}
 }

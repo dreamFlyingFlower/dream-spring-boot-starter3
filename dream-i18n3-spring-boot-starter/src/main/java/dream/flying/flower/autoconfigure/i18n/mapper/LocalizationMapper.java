@@ -12,7 +12,7 @@ import dream.flying.flower.framework.mybatis.plus.mapper.BaseMappers;
  *
  * @author 飞花梦影
  * @date 2026-04-13 13:49:19
- * @git {@link https://github.com/mygodness100}
+ * @git {@link https://github.com/dreamFlyingFlower}
  */
 @Mapper
 public interface LocalizationMapper extends BaseMappers<LocalizationEntity, LocalizationVO, LocalizationQuery> {

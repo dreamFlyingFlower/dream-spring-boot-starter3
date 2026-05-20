@@ -9,36 +9,40 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.flyway.FlywayAutoConfiguration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.MessageSource;
+import org.springframework.context.MessageSourceResolvable;
+import org.springframework.context.NoSuchMessageException;
 import org.springframework.context.annotation.Bean;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.web.servlet.i18n.LocaleChangeInterceptor;
 import org.springframework.web.servlet.i18n.SessionLocaleResolver;
 
-import dream.flying.flower.autoconfigure.i18n.properties.I18nProperties;
+import dream.flying.flower.autoconfigure.i18n.properties.LocalizationProperties;
 import dream.flying.flower.autoconfigure.i18n.service.LocalizationService;
+import dream.flying.flower.autoconfigure.i18n.service.impl.LocalizationServiceImpl;
 import dream.flying.flower.framework.constant.ConstConfig;
 
 /**
  * I18n auto configuration class
  *
  * @author 飞花梦影
- * @date 2026-05-18
+ * @date 2026-05-20 10:43:03
+ * @git {@link https://github.com/dreamFlyingFlower }
  */
 @AutoConfiguration(after = { FlywayAutoConfiguration.class })
+@EnableConfigurationProperties({ LocalizationProperties.class })
 @MapperScan("dream.flying.flower.autoconfigure.i18n.mapper")
-@EnableConfigurationProperties({ I18nProperties.class })
-@ConditionalOnProperty(prefix = ConstConfig.PREFIX + ".i18n", name = ConstConfig.ENABLED, havingValue = "true",
+@ConditionalOnProperty(prefix = ConstConfig.Auto.LOCALIZATION, name = ConstConfig.ENABLED, havingValue = "true",
 		matchIfMissing = true)
-public class I18nAutoConfiguration implements WebMvcConfigurer {
+public class LocalizationAutoConfiguration implements WebMvcConfigurer {
 
 	@Bean
 	@ConditionalOnMissingBean(LocalizationService.class)
-	LocalizationService localizationService(I18nProperties properties) {
-		LocalizationService service = new LocalizationService();
-		service.setCacheExpireHours(properties.getCacheExpireHours());
-		return service;
+	LocalizationService localizationService(RedisTemplate<String, String> redisTemplate,
+			LocalizationProperties localizationProperties) {
+		return new LocalizationServiceImpl(redisTemplate, localizationProperties);
 	}
 
 	@Bean
@@ -47,11 +51,11 @@ public class I18nAutoConfiguration implements WebMvcConfigurer {
 	}
 
 	@Bean
-	LocaleResolver localeResolver(I18nProperties properties) {
+	LocaleResolver localeResolver(LocalizationProperties properties) {
 		SessionLocaleResolver resolver = new SessionLocaleResolver();
 		String[] parts = properties.getDefaultLocale().split("_");
 		if (parts.length == 2) {
-			resolver.setDefaultLocale(Locale.of(parts[0], parts[1]));
+			resolver.setDefaultLocale(new Locale(parts[0], parts[1]));
 		} else {
 			resolver.setDefaultLocale(Locale.SIMPLIFIED_CHINESE);
 		}
@@ -91,8 +95,7 @@ public class I18nAutoConfiguration implements WebMvcConfigurer {
 		}
 
 		@Override
-		public String getMessage(org.springframework.context.MessageSourceResolvable resolvable, Locale locale)
-				throws org.springframework.context.NoSuchMessageException {
+		public String getMessage(MessageSourceResolvable resolvable, Locale locale) throws NoSuchMessageException {
 			String[] codes = resolvable.getCodes();
 			if (codes != null) {
 				for (String code : codes) {

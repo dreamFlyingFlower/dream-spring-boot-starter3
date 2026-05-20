@@ -13,7 +13,7 @@ import lombok.experimental.SuperBuilder;
  * 国际化查询
  *
  * @author 飞花梦影
- * @date 2024-08-01
+ * @date 2026-05-20 10:43:03
  * @git {@link https://github.com/dreamFlyingFlower}
  */
 @Getter
