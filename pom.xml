@@ -18,6 +18,7 @@
 		<module>dream-captcha3-spring-boot-starter</module>
 		<module>dream-cryption3-spring-boot-starter</module>
 		<module>dream-dict3-spring-boot-starter</module>
+		<module>dream-email3-spring-boot-starter</module>
 		<module>dream-excel3-spring-boot-starter</module>
 		<module>dream-i18n3-spring-boot-starter</module>
 		<module>dream-logger3-spring-boot-starter</module>

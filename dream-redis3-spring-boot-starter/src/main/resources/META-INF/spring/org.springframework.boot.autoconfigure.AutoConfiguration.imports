@@ -1,2 +1,3 @@
 dream.flying.flower.autoconfigure.redis.CustomizerConfigAutoConfiguration
 dream.flying.flower.autoconfigure.redis.CustomizerHelperAutoConfiguration
+dream.flying.flower.autoconfigure.redis.web.RedisWebAutoConfiguration

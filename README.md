@@ -21,6 +21,7 @@
 
 * dream-spring-boot-starter-cryption3:加密相关自动配置
 * dream-spring-boot-starter-dict3:字典管理相关自动配置
+* dream-spring-boot-starter-email3:邮件发送相关自动配置
 * dream-spring-boot-starter-excel3:excel相关自动配置
 * dream-spring-boot-starter-i18n3:国际化相关自动配置
 * dream-spring-boot-starter-logger3:日志相关自动配置
@@ -179,6 +180,71 @@
 * 配置数据库连接
 * 系统启动时自动创建 sys_dict 和 sys_dict_item 表
 * 注入 DictService 和 DictItemService 使用
+
+
+
+# email
+
+
+
+## 概述
+
+
+
+* 提供基于模板的邮件发送功能
+* 从数据库读取邮件模板配置
+* 模板文件存储在服务器指定目录
+* 支持 Thymeleaf 模板引擎
+* 支持附件发送
+
+
+
+## 配置项
+
+
+
+* `dream.email.enabled`:是否启用邮件功能,默认true
+* `dream.email.template-dir`:模板目录路径,默认email/templates
+* `dream.email.default-from-email`:默认发件人邮箱
+* `dream.email.default-from-name`:默认发件人名称
+* `spring.mail.host`:SMTP服务器地址
+* `spring.mail.port`:SMTP服务器端口
+* `spring.mail.username`:SMTP用户名
+* `spring.mail.password`:SMTP密码
+
+
+
+## 使用方式
+
+
+
+* 引入当前starter
+* 配置数据库连接和邮件服务器信息
+* 系统启动时自动创建 sys_email_template 表
+* 在数据库中配置邮件模板(template_code, template_path, subject等)
+* 将Thymeleaf模板文件放在配置的模板目录下
+* 注入 EmailService 使用
+
+
+
+### 示例代码
+
+
+
+```java
+@Autowired
+private EmailService emailService;
+
+// 发送普通邮件
+Map<String, Object> variables = new HashMap<>();
+variables.put("username", "张三");
+variables.put("code", "123456");
+emailService.sendEmail("user@example.com", "verification_code", variables);
+
+// 发送带附件的邮件
+FileSystemResource attachment = new FileSystemResource(new File("/path/to/file.pdf"));
+emailService.sendEmailWithAttachments("user@example.com", "notification", variables, attachment);
+```
 
 
 

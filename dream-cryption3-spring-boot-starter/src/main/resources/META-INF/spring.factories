@@ -1,3 +1,0 @@
-org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
-dream.flying.flower.autoconfigure.cryption.DecryptRequestBodyAutoConfiguration,\
-dream.flying.flower.autoconfigure.cryption.EncryptResponseBodyAutoConfiguration

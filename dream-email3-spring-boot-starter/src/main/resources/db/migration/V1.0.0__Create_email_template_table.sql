@@ -1,0 +1,61 @@
+CREATE TABLE IF NOT EXISTS `sys_email_template` (
+  `id` BIGINT UNSIGNED NOT NULL COMMENT '主键',
+  `template_code` VARCHAR(100) NOT NULL COMMENT '模板编码(唯一,与tenant_id组合)',
+  `template_name` VARCHAR(200) NOT NULL COMMENT '模板名称',
+  `template_type` VARCHAR(50) NOT NULL COMMENT '模板类型: 验证码, 通知, 市场营销',
+  `template_path` VARCHAR(500) NOT NULL COMMENT '模板文件路径相对模板目录',
+  `subject` VARCHAR(64) NOT NULL COMMENT '邮件主题',
+  `from_email` VARCHAR(64) DEFAULT NULL COMMENT '发件人邮件',
+  `from_name` VARCHAR(32) DEFAULT NULL COMMENT '发件人名称',
+  `status` TINYINT DEFAULT 1 COMMENT '状态: 0-禁用; 1-启用',
+  `remark` VARCHAR(256) DEFAULT NULL COMMENT '备注',
+  `tenant_id` BIGINT UNSIGNED NULL DEFAULT NULL COMMENT '租户ID',
+  `created_by` BIGINT UNSIGNED NULL DEFAULT NULL COMMENT '创建人',
+  `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `updated_by` BIGINT UNSIGNED NULL DEFAULT NULL COMMENT '更新人',
+  `updated_at` DATETIME NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  `deleted` TINYINT UNSIGNED NOT NULL DEFAULT 0 COMMENT '是否删除:0-否; 1-是',
+  PRIMARY KEY (`id`),
+  KEY `uk_template_code` (`template_code`),
+  KEY `idx_template_type` (`template_type`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Email template table';
+
+CREATE TABLE IF NOT EXISTS `sys_email_send_log` (
+  `id` BIGINT UNSIGNED NOT NULL COMMENT '主键',
+  `template_code` VARCHAR(100) NOT NULL COMMENT '模板编码(唯一,与created_at组合)',
+  `subject` VARCHAR(256) NOT NULL COMMENT '邮件主题',
+  `from_email` VARCHAR(64) DEFAULT NULL COMMENT '发件人邮箱',
+  `from_name` VARCHAR(32) DEFAULT NULL COMMENT '发件人名称',
+  `send_status` TINYINT NOT NULL DEFAULT 1 COMMENT '发送状态: 1-待发送, 2-成功, 3-失败',
+  `error_message` TEXT DEFAULT NULL COMMENT '错误信息',
+  `send_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '发送时间',
+  `attachment_count` INT DEFAULT 0 COMMENT '附件数量',
+  `remark` VARCHAR(256) DEFAULT NULL COMMENT '备注',
+  `tenant_id` BIGINT UNSIGNED NULL DEFAULT NULL COMMENT '租户ID',
+  `created_by` BIGINT UNSIGNED NULL DEFAULT NULL COMMENT '创建人',
+  `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `updated_by` BIGINT UNSIGNED NULL DEFAULT NULL COMMENT '更新人',
+  `updated_at` DATETIME NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  `deleted` TINYINT UNSIGNED NOT NULL DEFAULT 0 COMMENT '是否删除:0-否; 1-是',
+  PRIMARY KEY (`id`),
+  KEY `idx_template_code` (`template_code`),
+  KEY `idx_send_status` (`send_status`),
+  KEY `idx_send_time` (`send_time`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='邮件发送记录表';
+
+CREATE TABLE IF NOT EXISTS `sys_email_send_recipient` (
+  `id` BIGINT UNSIGNED NOT NULL COMMENT '主键',
+  `send_log_id` BIGINT UNSIGNED NOT NULL COMMENT '发送记录ID(唯一,与email和recipient_type组合)',
+  `email` VARCHAR(256) NOT NULL COMMENT '邮箱地址(唯一,与send_log_id和recipient_type组合)',
+  `recipient_type` TINYINT NOT NULL COMMENT '收件人类型: 1-接收人, 2-抄送人, 3-密送人(唯一,与send_log_id和email组合)',
+  `tenant_id` BIGINT UNSIGNED NULL DEFAULT NULL COMMENT '租户ID',
+  `created_by` BIGINT UNSIGNED NULL DEFAULT NULL COMMENT '创建人',
+  `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `updated_by` BIGINT UNSIGNED NULL DEFAULT NULL COMMENT '更新人',
+  `updated_at` DATETIME NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  `deleted` TINYINT UNSIGNED NOT NULL DEFAULT 0 COMMENT '是否删除:0-否; 1-是',
+  PRIMARY KEY (`id`),
+  KEY `idx_send_log_id` (`send_log_id`),
+  KEY `idx_email` (`email`),
+  KEY `idx_recipient_type` (`recipient_type`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='邮件收件人表';
