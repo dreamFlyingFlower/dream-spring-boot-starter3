@@ -27,9 +27,6 @@ public class DictItemQuery extends AbstractQuery {
 
 	private static final long serialVersionUID = 1L;
 
-	@Schema(description = "主键")
-	private Long id;
-
 	@Schema(description = "字典ID")
 	private Long dictId;
 

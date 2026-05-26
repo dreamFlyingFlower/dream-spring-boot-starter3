@@ -10,11 +10,14 @@ import org.springframework.scheduling.annotation.Scheduled;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 
+import dream.flying.flower.autoconfigure.dict.constant.ConstDict;
 import dream.flying.flower.autoconfigure.dict.entity.DictEntity;
 import dream.flying.flower.autoconfigure.dict.entity.DictItemEntity;
 import dream.flying.flower.autoconfigure.dict.mapper.DictItemMapper;
 import dream.flying.flower.autoconfigure.dict.mapper.DictMapper;
 import dream.flying.flower.autoconfigure.dict.properties.DictProperties;
+import dream.flying.flower.framework.constant.ConstCache;
+import dream.flying.flower.framework.constant.ConstStarter;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -37,10 +40,6 @@ public class DictCacheWarmupService implements CommandLineRunner {
 
 	@Autowired
 	private DictProperties dictProperties;
-
-	private static final String DICT_CACHE_PREFIX = "dict:";
-
-	private static final String DICT_ITEMS_CACHE_PREFIX = "dict:items:";
 
 	@Override
 	public void run(String... args) {
@@ -67,8 +66,8 @@ public class DictCacheWarmupService implements CommandLineRunner {
 
 	private void warmupAllDicts() {
 		try {
-			List<DictEntity> dicts = dictMapper.selectList(
-					new LambdaQueryWrapper<DictEntity>().eq(DictEntity::getDeleted, 0));
+			List<DictEntity> dicts =
+					dictMapper.selectList(new LambdaQueryWrapper<DictEntity>().eq(DictEntity::getDeleted, 0));
 
 			for (DictEntity dict : dicts) {
 				cacheDict(dict);
@@ -82,7 +81,8 @@ public class DictCacheWarmupService implements CommandLineRunner {
 	}
 
 	private void cacheDict(DictEntity dict) {
-		String cacheKey = DICT_CACHE_PREFIX + dict.getDictCode();
+		String cacheKey = ConstCache.buildRedisKey(ConstStarter.PROJECT_NAME, ConstDict.MODULE_NAME,
+				ConstDict.DICT_CACHE_PREFIX, dict.getDictCode());
 		try {
 			redisTemplate.opsForValue().set(cacheKey, dict, dictProperties.getCacheExpireHours(), TimeUnit.HOURS);
 		} catch (Exception e) {
@@ -91,13 +91,15 @@ public class DictCacheWarmupService implements CommandLineRunner {
 	}
 
 	private void cacheDictItems(Long dictId) {
-		List<DictItemEntity> items = dictItemMapper
-				.selectList(new LambdaQueryWrapper<DictItemEntity>().eq(DictItemEntity::getDictId, dictId)
-						.eq(DictItemEntity::getStatus, 1).eq(DictItemEntity::getDeleted, 0)
+		List<DictItemEntity> items =
+				dictItemMapper.selectList(new LambdaQueryWrapper<DictItemEntity>().eq(DictItemEntity::getDictId, dictId)
+						.eq(DictItemEntity::getStatus, 1)
+						.eq(DictItemEntity::getDeleted, 0)
 						.orderByAsc(DictItemEntity::getSortIndex));
 
 		if (!items.isEmpty()) {
-			String cacheKey = DICT_ITEMS_CACHE_PREFIX + dictId;
+			String cacheKey = ConstCache.buildRedisKey(ConstStarter.PROJECT_NAME, ConstDict.MODULE_NAME,
+					ConstDict.DICT_ITEMS_CACHE_PREFIX, dictId + "");
 			try {
 				redisTemplate.opsForValue().set(cacheKey, items, dictProperties.getCacheExpireHours(), TimeUnit.HOURS);
 			} catch (Exception e) {
@@ -108,7 +110,8 @@ public class DictCacheWarmupService implements CommandLineRunner {
 
 	public void evictDictCache(String dictCode) {
 		try {
-			String cacheKey = DICT_CACHE_PREFIX + dictCode;
+			String cacheKey = ConstCache.buildRedisKey(ConstStarter.PROJECT_NAME, ConstDict.MODULE_NAME,
+					ConstDict.DICT_CACHE_PREFIX, dictCode);
 			redisTemplate.delete(cacheKey);
 		} catch (Exception e) {
 			log.error("Evict dict cache failed: dictCode={}, error={}", dictCode, e.getMessage());

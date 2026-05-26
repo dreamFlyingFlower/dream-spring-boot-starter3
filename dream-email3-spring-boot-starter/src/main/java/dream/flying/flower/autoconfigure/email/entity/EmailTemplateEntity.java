@@ -31,7 +31,7 @@ public class EmailTemplateEntity extends AbstractTenantEntity {
 	/**
 	 * Template code (unique with tenant_id when not deleted)
 	 */
-	@dream.flying.flower.db.annotation.Unique
+	@Unique
 	private String templateCode;
 
 	/**

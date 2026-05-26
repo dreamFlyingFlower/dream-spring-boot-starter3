@@ -2,7 +2,7 @@ package dream.flying.flower.autoconfigure.i18n.entity;
 
 import com.baomidou.mybatisplus.annotation.TableName;
 
-import dream.flying.flower.framework.mybatis.plus.entity.AbstractEntity;
+import dream.flying.flower.framework.mybatis.plus.entity.AbstractTenantEntity;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -24,7 +24,7 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor
 @AllArgsConstructor
 @TableName("sys_localization")
-public class LocalizationEntity extends AbstractEntity {
+public class LocalizationEntity extends AbstractTenantEntity {
 
 	private static final long serialVersionUID = 1L;
 

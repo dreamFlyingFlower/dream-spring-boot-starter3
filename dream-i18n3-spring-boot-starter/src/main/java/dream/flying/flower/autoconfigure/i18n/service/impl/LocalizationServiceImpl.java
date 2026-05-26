@@ -10,6 +10,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 
+import dream.flying.flower.autoconfigure.i18n.constant.ConstLocalization;
 import dream.flying.flower.autoconfigure.i18n.convert.LocalizationConvert;
 import dream.flying.flower.autoconfigure.i18n.entity.LocalizationEntity;
 import dream.flying.flower.autoconfigure.i18n.mapper.LocalizationMapper;
@@ -17,6 +18,8 @@ import dream.flying.flower.autoconfigure.i18n.properties.LocalizationProperties;
 import dream.flying.flower.autoconfigure.i18n.query.LocalizationQuery;
 import dream.flying.flower.autoconfigure.i18n.service.LocalizationService;
 import dream.flying.flower.autoconfigure.i18n.vo.LocalizationVO;
+import dream.flying.flower.framework.constant.ConstCache;
+import dream.flying.flower.framework.constant.ConstStarter;
 import dream.flying.flower.framework.mybatis.plus.service.impl.AbstractServiceImpl;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -37,13 +40,10 @@ public class LocalizationServiceImpl extends AbstractServiceImpl<LocalizationEnt
 
 	private final LocalizationProperties localizationProperties;
 
-	private static final String I18N_CACHE_PREFIX = "i18n:message:";
-
-	private static final String I18N_ALL_CACHE_PREFIX = "i18n:all:";
-
 	@Override
 	public String getMessage(String langCode, String messageCode) {
-		String cacheKey = I18N_CACHE_PREFIX + langCode + ":" + messageCode;
+		String cacheKey = ConstCache.buildRedisKey(ConstStarter.PROJECT_NAME, ConstLocalization.MODULE_NAME,
+				ConstLocalization.I18N_CACHE_PREFIX, langCode, messageCode);
 
 		// Try to get from cache first
 		try {
@@ -83,7 +83,8 @@ public class LocalizationServiceImpl extends AbstractServiceImpl<LocalizationEnt
 
 	@Override
 	public Map<String, String> getAllMessages(String langCode) {
-		String cacheKey = I18N_ALL_CACHE_PREFIX + langCode;
+		String cacheKey = ConstCache.buildRedisKey(ConstStarter.PROJECT_NAME, ConstLocalization.MODULE_NAME,
+				ConstLocalization.I18N_ALL_CACHE_PREFIX, langCode);
 
 		// Try to get from cache first
 		try {
@@ -126,11 +127,13 @@ public class LocalizationServiceImpl extends AbstractServiceImpl<LocalizationEnt
 	@Override
 	public void clearCache(String langCode) {
 		try {
-			String allCacheKey = I18N_ALL_CACHE_PREFIX + langCode;
+			String allCacheKey = ConstCache.buildRedisKey(ConstStarter.PROJECT_NAME, ConstLocalization.MODULE_NAME,
+					ConstLocalization.I18N_ALL_CACHE_PREFIX, langCode);
 			redisTemplate.delete(allCacheKey);
 
 			// Clear all message caches for this language
-			String pattern = I18N_CACHE_PREFIX + langCode + ":*";
+			String pattern = ConstCache.buildRedisKey(ConstStarter.PROJECT_NAME, ConstLocalization.MODULE_NAME,
+					ConstLocalization.I18N_CACHE_PREFIX, langCode, "*");
 			redisTemplate.delete(redisTemplate.keys(pattern));
 		} catch (Exception e) {
 			// Redis connection failed, ignore cache operation
@@ -144,8 +147,11 @@ public class LocalizationServiceImpl extends AbstractServiceImpl<LocalizationEnt
 	@Override
 	public void clearAllCache() {
 		try {
-			redisTemplate.delete(redisTemplate.keys(I18N_CACHE_PREFIX + "*"));
-			redisTemplate.delete(redisTemplate.keys(I18N_ALL_CACHE_PREFIX + "*"));
+			redisTemplate.delete(redisTemplate.keys(ConstCache.buildRedisKey(ConstStarter.PROJECT_NAME,
+					ConstLocalization.MODULE_NAME, ConstLocalization.I18N_CACHE_PREFIX, "*")));
+
+			redisTemplate.delete(redisTemplate.keys(ConstCache.buildRedisKey(ConstStarter.PROJECT_NAME,
+					ConstLocalization.MODULE_NAME, ConstLocalization.I18N_ALL_CACHE_PREFIX, "*")));
 		} catch (Exception e) {
 			// Redis connection failed, ignore cache operation
 			e.printStackTrace();

@@ -1,18 +1,10 @@
 package dream.flying.flower.autoconfigure.dict.entity;
 
-import java.time.LocalDateTime;
-
-import com.baomidou.mybatisplus.annotation.FieldFill;
-import com.baomidou.mybatisplus.annotation.FieldStrategy;
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableField;
-import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableLogic;
 import com.baomidou.mybatisplus.annotation.TableName;
 
 import dream.flying.flower.db.annotation.AutoCode;
 import dream.flying.flower.db.annotation.Unique;
-import dream.flying.flower.framework.mybatis.plus.entity.AbstractEntity;
+import dream.flying.flower.framework.mybatis.plus.entity.AbstractTenantEntity;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -34,36 +26,19 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor
 @AllArgsConstructor
 @TableName("sys_dict_item")
-public class DictItemEntity extends AbstractEntity {
+public class DictItemEntity extends AbstractTenantEntity {
 
 	private static final long serialVersionUID = 1L;
-
-	@TableId(type = IdType.ASSIGN_ID)
-	private Long id;
-
-	private Long tenantId;
-
-	@TableLogic
-	private Integer deleted;
-
-	@TableField(fill = FieldFill.INSERT, insertStrategy = FieldStrategy.NOT_NULL,
-			updateStrategy = FieldStrategy.NOT_NULL)
-	private String createBy;
-
-	@TableField(fill = FieldFill.INSERT)
-	private LocalDateTime createAt;
-
-	@TableField(fill = FieldFill.INSERT_UPDATE, insertStrategy = FieldStrategy.NOT_NULL,
-			updateStrategy = FieldStrategy.NOT_NULL)
-	private String updateBy;
-
-	@TableField(fill = FieldFill.INSERT_UPDATE)
-	private LocalDateTime updateAt;
 
 	/**
 	 * Dictionary ID
 	 */
 	private Long dictId;
+
+	/**
+	 * Dictionary Code
+	 */
+	private String dictCode;
 
 	/**
 	 * Dictionary item code
