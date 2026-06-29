@@ -51,6 +51,9 @@ public class AzureManager {
 		GraphServiceClient graphClient = azureProperties.isChainRegion()
 				? new GraphServiceClient(credential, new String[] { azureProperties.getChinaScope() })
 				: new GraphServiceClient(credential, new String[] { azureProperties.getScope() });
+		if (azureProperties.isChainRegion()) {
+			graphClient.getRequestAdapter().setBaseUrl(azureProperties.getChinaBaseUrl());
+		}
 
 		User user = getUser(graphClient);
 		if (null == user) {

@@ -43,4 +43,9 @@ public class AzureProperties {
 	 * 国内scope
 	 */
 	private String chinaScope = "https://microsoftgraph.chinacloudapi.cn/.default";
+
+	/**
+	 * 国内baseurl
+	 */
+	private String chinaBaseUrl = "https://microsoftgraph.chinacloudapi.cn/v1.0";
 }
