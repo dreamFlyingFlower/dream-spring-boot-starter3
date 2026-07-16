@@ -31,6 +31,20 @@ public class DreamLogProperties {
 	private boolean enabledEndpoint = true;
 
 	/**
+	 * 是否将日志输出到日志文件
+	 * 
+	 * @return 默认输出
+	 */
+	private boolean outputFile = true;
+
+	/**
+	 * 是否将日志存储到数据库
+	 * 
+	 * @return 默认不存储
+	 */
+	private boolean storeDb = false;
+
+	/**
 	 * 应用名称
 	 */
 	private String appName;
@@ -51,6 +65,11 @@ public class DreamLogProperties {
 	private List<String> excludeParamNames;
 
 	/**
+	 * 需要过滤的响应类型
+	 */
+	private List<Class<?>> excludeResponseTypes;
+
+	/**
 	 * 异步线程池核心线程数
 	 */
 	private int asyncCorePoolSize = 2;
@@ -64,6 +83,16 @@ public class DreamLogProperties {
 	 * 异步线程池队列容量
 	 */
 	private int asyncQueueCapacity = 1000;
+
+	/**
+	 * 是否保存请求的参数
+	 */
+	private boolean saveRequest = true;
+
+	/**
+	 * 是否保存响应的参数
+	 */
+	private boolean saveResponse = true;
 
 	/**
 	 * 过滤规则
