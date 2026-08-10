@@ -7,7 +7,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
@@ -28,6 +27,7 @@ import dream.flying.flower.autoconfigure.email.service.EmailSendLogService;
 import dream.flying.flower.autoconfigure.email.service.EmailSendRecipientService;
 import dream.flying.flower.autoconfigure.email.service.EmailService;
 import jakarta.mail.internet.MimeMessage;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -38,25 +38,20 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class EmailServiceImpl implements EmailService {
 
-	@Autowired
-	private JavaMailSender mailSender;
+	private final JavaMailSender mailSender;
 
-	@Autowired
-	private TemplateEngine templateEngine;
+	private final TemplateEngine templateEngine;
 
-	@Autowired
-	private EmailTemplateMapper templateMapper;
+	private final EmailTemplateMapper templateMapper;
 
-	@Autowired
-	private EmailProperties emailProperties;
+	private final EmailProperties emailProperties;
 
-	@Autowired
-	private EmailSendLogService emailSendLogService;
+	private final EmailSendLogService emailSendLogService;
 
-	@Autowired
-	private EmailSendRecipientService emailSendRecipientService;
+	private final EmailSendRecipientService emailSendRecipientService;
 
 	@Override
 	public void sendEmail(String toEmail, String templateCode, Map<String, Object> variables) {
@@ -167,10 +162,10 @@ public class EmailServiceImpl implements EmailService {
 	}
 
 	private EmailTemplateEntity getTemplateByCode(String templateCode) {
-		return templateMapper.selectOne(new LambdaQueryWrapper<EmailTemplateEntity>()
-				.eq(EmailTemplateEntity::getTemplateCode, templateCode)
-				.eq(EmailTemplateEntity::getStatus, 1)
-				.eq(EmailTemplateEntity::getDeleted, 0));
+		return templateMapper.selectOne(
+				new LambdaQueryWrapper<EmailTemplateEntity>().eq(EmailTemplateEntity::getTemplateCode, templateCode)
+						.eq(EmailTemplateEntity::getStatus, 1)
+						.eq(EmailTemplateEntity::getDeleted, 0));
 	}
 
 	private EmailSendRecipientEntity createRecipient(Long sendLogId, String email, RecipientType type) {

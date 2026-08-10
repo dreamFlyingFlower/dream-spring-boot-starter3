@@ -1,6 +1,5 @@
 package dream.flying.flower.autoconfigure.email.service.impl;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -8,6 +7,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import dream.flying.flower.autoconfigure.email.entity.EmailSendLogEntity;
 import dream.flying.flower.autoconfigure.email.mapper.EmailSendLogMapper;
 import dream.flying.flower.autoconfigure.email.service.EmailSendLogService;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -18,11 +18,11 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class EmailSendLogServiceImpl extends ServiceImpl<EmailSendLogMapper, EmailSendLogEntity>
 		implements EmailSendLogService {
 
-	@Autowired
-	private EmailSendLogMapper emailSendLogMapper;
+	private final EmailSendLogMapper emailSendLogMapper;
 
 	@Override
 	public void saveLog(EmailSendLogEntity sendLog) {

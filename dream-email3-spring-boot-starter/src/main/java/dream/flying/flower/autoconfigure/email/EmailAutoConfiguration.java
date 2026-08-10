@@ -7,8 +7,13 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.flyway.FlywayAutoConfiguration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.thymeleaf.TemplateEngine;
 
+import dream.flying.flower.autoconfigure.email.mapper.EmailSendRecipientMapper;
+import dream.flying.flower.autoconfigure.email.mapper.EmailTemplateMapper;
 import dream.flying.flower.autoconfigure.email.properties.EmailProperties;
+import dream.flying.flower.autoconfigure.email.service.EmailSendLogService;
 import dream.flying.flower.autoconfigure.email.service.EmailSendRecipientService;
 import dream.flying.flower.autoconfigure.email.service.EmailService;
 import dream.flying.flower.autoconfigure.email.service.EmailTemplateService;
@@ -32,19 +37,22 @@ public class EmailAutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean(EmailService.class)
-	EmailService emailService() {
-		return new EmailServiceImpl();
+	EmailService emailService(JavaMailSender mailSender, TemplateEngine templateEngine,
+			EmailTemplateMapper templateMapper, EmailProperties emailProperties,
+			EmailSendLogService emailSendLogService, EmailSendRecipientService emailSendRecipientService) {
+		return new EmailServiceImpl(mailSender, templateEngine, templateMapper, emailProperties, emailSendLogService,
+				emailSendRecipientService);
 	}
 
 	@Bean
 	@ConditionalOnMissingBean(EmailSendRecipientService.class)
-	EmailSendRecipientService emailSendRecipientService() {
-		return new EmailSendRecipientServiceImpl();
+	EmailSendRecipientService emailSendRecipientService(EmailSendRecipientMapper emailSendRecipientMapper) {
+		return new EmailSendRecipientServiceImpl(emailSendRecipientMapper);
 	}
 
 	@Bean
 	@ConditionalOnMissingBean(EmailTemplateService.class)
-	EmailTemplateService emailTemplateService() {
-		return new EmailTemplateServiceImpl();
+	EmailTemplateService emailTemplateService(EmailTemplateMapper emailTemplateMapper) {
+		return new EmailTemplateServiceImpl(emailTemplateMapper);
 	}
 }

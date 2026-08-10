@@ -1,9 +1,5 @@
 package dream.flying.flower.autoconfigure.email.service;
 
-import java.util.Map;
-
-import org.springframework.core.io.FileSystemResource;
-
 /**
  * Email send log service interface
  *
@@ -22,8 +18,8 @@ public interface EmailSendLogService {
 	/**
 	 * Update email send log status
 	 *
-	 * @param id           log ID
-	 * @param sendStatus   send status
+	 * @param id log ID
+	 * @param sendStatus send status
 	 * @param errorMessage error message if failed
 	 */
 	void updateLogStatus(Long id, Integer sendStatus, String errorMessage);

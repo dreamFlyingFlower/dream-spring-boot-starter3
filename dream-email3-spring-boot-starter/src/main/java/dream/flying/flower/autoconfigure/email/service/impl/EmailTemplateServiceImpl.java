@@ -2,7 +2,6 @@ package dream.flying.flower.autoconfigure.email.service.impl;
 
 import java.util.List;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
@@ -11,6 +10,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import dream.flying.flower.autoconfigure.email.entity.EmailTemplateEntity;
 import dream.flying.flower.autoconfigure.email.mapper.EmailTemplateMapper;
 import dream.flying.flower.autoconfigure.email.service.EmailTemplateService;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -21,11 +21,11 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class EmailTemplateServiceImpl extends ServiceImpl<EmailTemplateMapper, EmailTemplateEntity>
 		implements EmailTemplateService {
 
-	@Autowired
-	private EmailTemplateMapper emailTemplateMapper;
+	private final EmailTemplateMapper emailTemplateMapper;
 
 	@Override
 	public void saveTemplate(EmailTemplateEntity template) {
@@ -52,24 +52,24 @@ public class EmailTemplateServiceImpl extends ServiceImpl<EmailTemplateMapper, E
 
 	@Override
 	public EmailTemplateEntity getTemplateByCode(String templateCode) {
-		return emailTemplateMapper.selectOne(new LambdaQueryWrapper<EmailTemplateEntity>()
-				.eq(EmailTemplateEntity::getTemplateCode, templateCode)
-				.eq(EmailTemplateEntity::getDeleted, 0));
+		return emailTemplateMapper.selectOne(
+				new LambdaQueryWrapper<EmailTemplateEntity>().eq(EmailTemplateEntity::getTemplateCode, templateCode)
+						.eq(EmailTemplateEntity::getDeleted, 0));
 	}
 
 	@Override
 	public List<EmailTemplateEntity> listEnabledTemplates() {
-		return emailTemplateMapper.selectList(new LambdaQueryWrapper<EmailTemplateEntity>()
-				.eq(EmailTemplateEntity::getStatus, 1)
-				.eq(EmailTemplateEntity::getDeleted, 0)
-				.orderByDesc(EmailTemplateEntity::getCreatedAt));
+		return emailTemplateMapper
+				.selectList(new LambdaQueryWrapper<EmailTemplateEntity>().eq(EmailTemplateEntity::getStatus, 1)
+						.eq(EmailTemplateEntity::getDeleted, 0)
+						.orderByDesc(EmailTemplateEntity::getCreatedAt));
 	}
 
 	@Override
 	public List<EmailTemplateEntity> listAllTemplates() {
-		return emailTemplateMapper.selectList(new LambdaQueryWrapper<EmailTemplateEntity>()
-				.eq(EmailTemplateEntity::getDeleted, 0)
-				.orderByDesc(EmailTemplateEntity::getCreatedAt));
+		return emailTemplateMapper
+				.selectList(new LambdaQueryWrapper<EmailTemplateEntity>().eq(EmailTemplateEntity::getDeleted, 0)
+						.orderByDesc(EmailTemplateEntity::getCreatedAt));
 	}
 
 	@Override

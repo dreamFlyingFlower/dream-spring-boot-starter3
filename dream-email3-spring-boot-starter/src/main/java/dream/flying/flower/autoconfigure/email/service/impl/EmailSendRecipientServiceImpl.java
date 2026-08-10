@@ -2,7 +2,6 @@ package dream.flying.flower.autoconfigure.email.service.impl;
 
 import java.util.List;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
@@ -11,6 +10,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import dream.flying.flower.autoconfigure.email.entity.EmailSendRecipientEntity;
 import dream.flying.flower.autoconfigure.email.mapper.EmailSendRecipientMapper;
 import dream.flying.flower.autoconfigure.email.service.EmailSendRecipientService;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -21,11 +21,11 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class EmailSendRecipientServiceImpl extends ServiceImpl<EmailSendRecipientMapper, EmailSendRecipientEntity>
 		implements EmailSendRecipientService {
 
-	@Autowired
-	private EmailSendRecipientMapper emailSendRecipientMapper;
+	private final EmailSendRecipientMapper emailSendRecipientMapper;
 
 	@Override
 	public void batchSave(List<EmailSendRecipientEntity> recipients) {
@@ -40,8 +40,8 @@ public class EmailSendRecipientServiceImpl extends ServiceImpl<EmailSendRecipien
 
 	@Override
 	public List<EmailSendRecipientEntity> findBySendLogId(Long sendLogId) {
-		return emailSendRecipientMapper.selectList(new LambdaQueryWrapper<EmailSendRecipientEntity>()
-				.eq(EmailSendRecipientEntity::getSendLogId, sendLogId)
-				.eq(EmailSendRecipientEntity::getDeleted, 0));
+		return emailSendRecipientMapper.selectList(
+				new LambdaQueryWrapper<EmailSendRecipientEntity>().eq(EmailSendRecipientEntity::getSendLogId, sendLogId)
+						.eq(EmailSendRecipientEntity::getDeleted, 0));
 	}
 }
