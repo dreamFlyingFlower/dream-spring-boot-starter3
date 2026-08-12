@@ -7,8 +7,11 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.flyway.FlywayAutoConfiguration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
+import org.springframework.data.redis.core.RedisTemplate;
 
 import dream.flying.flower.autoconfigure.dict.cache.DictCacheWarmupService;
+import dream.flying.flower.autoconfigure.dict.mapper.DictItemMapper;
+import dream.flying.flower.autoconfigure.dict.mapper.DictMapper;
 import dream.flying.flower.autoconfigure.dict.properties.DictProperties;
 import dream.flying.flower.autoconfigure.dict.service.DictItemService;
 import dream.flying.flower.autoconfigure.dict.service.DictService;
@@ -45,7 +48,8 @@ public class DictAutoConfiguration {
 	@ConditionalOnMissingBean(DictCacheWarmupService.class)
 	@ConditionalOnProperty(prefix = ConstConfig.Auto.DICT, name = "warmup-enabled", havingValue = "true",
 			matchIfMissing = true)
-	DictCacheWarmupService dictCacheWarmupService() {
-		return new DictCacheWarmupService();
+	DictCacheWarmupService dictCacheWarmupService(RedisTemplate<String, Object> redisTemplate, DictMapper dictMapper,
+			DictItemMapper dictItemMapper, DictProperties dictProperties) {
+		return new DictCacheWarmupService(redisTemplate, dictMapper, dictItemMapper, dictProperties);
 	}
 }

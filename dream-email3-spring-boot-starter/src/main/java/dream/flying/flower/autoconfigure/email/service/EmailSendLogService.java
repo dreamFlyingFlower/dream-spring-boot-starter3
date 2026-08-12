@@ -1,26 +1,29 @@
 package dream.flying.flower.autoconfigure.email.service;
 
+import dream.flying.flower.autoconfigure.email.entity.EmailSendLogEntity;
+
 /**
- * Email send log service interface
+ * 邮件发送日志服务接口
  *
  * @author 飞花梦影
- * @date 2026-05-25
+ * @date 2026-05-25 13:25:57
+ * @git {@link https://github.com/dreamFlyingFlower}
  */
 public interface EmailSendLogService {
 
 	/**
-	 * Save email send log
+	 * 保存邮件发送日志
 	 *
-	 * @param sendLog email send log entity
+	 * @param sendLog 邮件发送日志实体
 	 */
-	void saveLog(dream.flying.flower.autoconfigure.email.entity.EmailSendLogEntity sendLog);
+	void saveLog(EmailSendLogEntity sendLog);
 
 	/**
-	 * Update email send log status
+	 * 更新邮件发送日志状态
 	 *
-	 * @param id log ID
-	 * @param sendStatus send status
-	 * @param errorMessage error message if failed
+	 * @param id 日志ID
+	 * @param sendStatus 发送状态
+	 * @param errorMessage 失败错误信息
 	 */
 	void updateLogStatus(Long id, Integer sendStatus, String errorMessage);
 }

@@ -12,10 +12,11 @@ import lombok.ToString;
 import lombok.experimental.SuperBuilder;
 
 /**
- * Email send recipient entity class
+ * 邮件发送收件人实体类
  *
  * @author 飞花梦影
- * @date 2026-05-25
+ * @date 2026-05-25 13:25:57
+ * @git {@link https://github.com/dreamFlyingFlower}
  */
 @Getter
 @Setter
@@ -23,25 +24,25 @@ import lombok.experimental.SuperBuilder;
 @SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
-@TableName("sys_email_send_recipient")
-public class EmailSendRecipientEntity extends AbstractTenantEntity {
+@TableName("sys_email_recipient")
+public class EmailRecipientEntity extends AbstractTenantEntity {
 
 	private static final long serialVersionUID = 1L;
 
 	/**
-	 * Send log ID (unique with email and recipient_type when not deleted)
+	 * 发送日志ID (未删除时与邮箱和收件人类型唯一)
 	 */
 	@Unique
 	private Long sendLogId;
 
 	/**
-	 * Email address (unique with send_log_id and recipient_type when not deleted)
+	 * 邮箱地址 (未删除时与发送日志ID和收件人类型唯一)
 	 */
 	@Unique
 	private String email;
 
 	/**
-	 * Recipient type: 1-to, 2-cc, 3-bcc (unique with send_log_id and email when not deleted)
+	 * 收件人类型: 1-收件人, 2-抄送, 3-密送 (未删除时与发送日志ID和邮箱唯一)
 	 */
 	@Unique
 	private Integer recipientType;

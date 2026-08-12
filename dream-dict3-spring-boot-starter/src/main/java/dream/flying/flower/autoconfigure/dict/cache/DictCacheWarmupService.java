@@ -3,7 +3,6 @@ package dream.flying.flower.autoconfigure.dict.cache;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -18,6 +17,7 @@ import dream.flying.flower.autoconfigure.dict.mapper.DictMapper;
 import dream.flying.flower.autoconfigure.dict.properties.DictProperties;
 import dream.flying.flower.framework.constant.ConstCache;
 import dream.flying.flower.framework.constant.ConstStarter;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -27,19 +27,16 @@ import lombok.extern.slf4j.Slf4j;
  * @date 2026-05-18
  */
 @Slf4j
+@RequiredArgsConstructor
 public class DictCacheWarmupService implements CommandLineRunner {
 
-	@Autowired
-	private RedisTemplate<String, Object> redisTemplate;
+	private final RedisTemplate<String, Object> redisTemplate;
 
-	@Autowired
-	private DictMapper dictMapper;
+	private final DictMapper dictMapper;
 
-	@Autowired
-	private DictItemMapper dictItemMapper;
+	private final DictItemMapper dictItemMapper;
 
-	@Autowired
-	private DictProperties dictProperties;
+	private final DictProperties dictProperties;
 
 	@Override
 	public void run(String... args) {

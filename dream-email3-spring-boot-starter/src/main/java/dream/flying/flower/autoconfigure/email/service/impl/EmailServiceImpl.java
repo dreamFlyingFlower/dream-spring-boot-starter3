@@ -16,15 +16,15 @@ import org.thymeleaf.context.Context;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 
+import dream.flying.flower.autoconfigure.email.entity.EmailRecipientEntity;
 import dream.flying.flower.autoconfigure.email.entity.EmailSendLogEntity;
-import dream.flying.flower.autoconfigure.email.entity.EmailSendRecipientEntity;
 import dream.flying.flower.autoconfigure.email.entity.EmailTemplateEntity;
+import dream.flying.flower.autoconfigure.email.enums.EmailSendStatus;
 import dream.flying.flower.autoconfigure.email.enums.RecipientType;
-import dream.flying.flower.autoconfigure.email.enums.SendStatus;
 import dream.flying.flower.autoconfigure.email.mapper.EmailTemplateMapper;
 import dream.flying.flower.autoconfigure.email.properties.EmailProperties;
+import dream.flying.flower.autoconfigure.email.service.EmailRecipientService;
 import dream.flying.flower.autoconfigure.email.service.EmailSendLogService;
-import dream.flying.flower.autoconfigure.email.service.EmailSendRecipientService;
 import dream.flying.flower.autoconfigure.email.service.EmailService;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
@@ -34,7 +34,8 @@ import lombok.extern.slf4j.Slf4j;
  * Email service implementation
  *
  * @author 飞花梦影
- * @date 2026-05-25
+ * @date 2026-08-12 17:14:08
+ * @git {@link https://github.com/dreamFlyingFlower}
  */
 @Slf4j
 @Service
@@ -45,13 +46,13 @@ public class EmailServiceImpl implements EmailService {
 
 	private final TemplateEngine templateEngine;
 
-	private final EmailTemplateMapper templateMapper;
+	private final EmailTemplateMapper emailTemplateMapper;
 
 	private final EmailProperties emailProperties;
 
 	private final EmailSendLogService emailSendLogService;
 
-	private final EmailSendRecipientService emailSendRecipientService;
+	private final EmailRecipientService emailRecipientService;
 
 	@Override
 	public void sendEmail(String toEmail, String templateCode, Map<String, Object> variables) {
@@ -86,13 +87,13 @@ public class EmailServiceImpl implements EmailService {
 				.subject(template.getSubject())
 				.fromEmail(template.getFromEmail())
 				.fromName(template.getFromName())
-				.sendStatus(SendStatus.PENDING.getCode())
+				.sendStatus(EmailSendStatus.PENDING.getValue())
 				.attachmentCount(attachmentCount)
 				.build();
 		emailSendLogService.saveLog(sendLog);
 
 		// Save recipients
-		List<EmailSendRecipientEntity> recipients = new ArrayList<>();
+		List<EmailRecipientEntity> recipients = new ArrayList<>();
 		if (toEmails != null) {
 			for (String email : toEmails) {
 				recipients.add(createRecipient(sendLog.getId(), email, RecipientType.TO));
@@ -109,7 +110,7 @@ public class EmailServiceImpl implements EmailService {
 			}
 		}
 		if (!recipients.isEmpty()) {
-			emailSendRecipientService.batchSave(recipients);
+			emailRecipientService.batchSave(recipients);
 		}
 
 		try {
@@ -144,17 +145,17 @@ public class EmailServiceImpl implements EmailService {
 			mailSender.send(mimeMessage);
 
 			// Update send log status to success
-			sendLog.setSendStatus(SendStatus.SUCCESS.getCode());
+			sendLog.setSendStatus(EmailSendStatus.SUCCESS.getValue());
 			sendLog.setSendTime(LocalDateTime.now());
-			emailSendLogService.updateLogStatus(sendLog.getId(), SendStatus.SUCCESS.getCode(), null);
+			emailSendLogService.updateLogStatus(sendLog.getId(), EmailSendStatus.SUCCESS.getValue(), null);
 
 			log.info("Email sent successfully");
 		} catch (Exception e) {
 			// Update send log status to failed
-			sendLog.setSendStatus(SendStatus.FAILED.getCode());
+			sendLog.setSendStatus(EmailSendStatus.FAILED.getValue());
 			sendLog.setErrorMessage(e.getMessage());
 			sendLog.setSendTime(LocalDateTime.now());
-			emailSendLogService.updateLogStatus(sendLog.getId(), SendStatus.FAILED.getCode(), e.getMessage());
+			emailSendLogService.updateLogStatus(sendLog.getId(), EmailSendStatus.FAILED.getValue(), e.getMessage());
 
 			log.error("Failed to send email, error: {}", e.getMessage());
 			throw new RuntimeException("Failed to send email", e);
@@ -162,18 +163,14 @@ public class EmailServiceImpl implements EmailService {
 	}
 
 	private EmailTemplateEntity getTemplateByCode(String templateCode) {
-		return templateMapper.selectOne(
+		return emailTemplateMapper.selectOne(
 				new LambdaQueryWrapper<EmailTemplateEntity>().eq(EmailTemplateEntity::getTemplateCode, templateCode)
 						.eq(EmailTemplateEntity::getStatus, 1)
 						.eq(EmailTemplateEntity::getDeleted, 0));
 	}
 
-	private EmailSendRecipientEntity createRecipient(Long sendLogId, String email, RecipientType type) {
-		return EmailSendRecipientEntity.builder()
-				.sendLogId(sendLogId)
-				.email(email)
-				.recipientType(type.getCode())
-				.build();
+	private EmailRecipientEntity createRecipient(Long sendLogId, String email, RecipientType type) {
+		return EmailRecipientEntity.builder().sendLogId(sendLogId).email(email).recipientType(type.getValue()).build();
 	}
 
 	private String processTemplate(String templatePath, Map<String, Object> variables) {

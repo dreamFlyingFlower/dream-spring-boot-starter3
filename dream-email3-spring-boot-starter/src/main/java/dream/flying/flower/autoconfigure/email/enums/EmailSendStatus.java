@@ -8,36 +8,37 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 /**
- * Recipient type enumeration
+ * Email send status enum
  *
  * @author 飞花梦影
- * @date 2026-05-25 13:25:57
- * @git {@link https://github.com/dreamFlyingFlower}
+ * @date 2026-05-25
  */
 @Getter
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
-public enum RecipientType implements CodeMsg {
+public enum EmailSendStatus implements CodeMsg {
 
 	/** 与字典对应 */
-	RECIPIENT_TYPE("收件人类型"),
-	
-	/** 接收人*/
-	TO("接收人"),
-	
-	/** 抄送人*/
-	CC("抄送人"),
-	BCC("密送人");
+	EMAIL_SEND_STATUS("邮件发送状态"),
+
+	/** Pending status */
+	PENDING("待发送"),
+
+	/** Success status */
+	SUCCESS("成功"),
+
+	/** Failed status */
+	FAILED("失败");
 
 	private final String msg;
 
-	public static RecipientType get(int value) {
+	public static EmailSendStatus get(int value) {
 		return Stream.of(values())
 				.filter(t -> t.ordinal() == value)
 				.findFirst()
 				.orElseThrow(() -> new IllegalArgumentException("Invalid enum value: " + value));
 	}
 
-	public static RecipientType get(String value) {
+	public static EmailSendStatus get(String value) {
 		return Stream.of(values())
 				.filter(t -> t.name().equalsIgnoreCase(value))
 				.findFirst()

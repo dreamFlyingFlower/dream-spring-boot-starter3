@@ -14,10 +14,11 @@ import lombok.ToString;
 import lombok.experimental.SuperBuilder;
 
 /**
- * Email send log entity class
+ * 邮件发送日志实体类
  *
  * @author 飞花梦影
- * @date 2026-05-25
+ * @date 2026-05-25 13:25:57
+ * @git {@link https://github.com/dreamFlyingFlower}
  */
 @Getter
 @Setter
@@ -30,46 +31,49 @@ public class EmailSendLogEntity extends AbstractTenantEntity {
 
 	private static final long serialVersionUID = 1L;
 
+	/**
+	 * 模板编码
+	 */
 	@Unique
 	private String templateCode;
 
 	/**
-	 * Subject
+	 * 主题
 	 */
 	private String subject;
 
 	/**
-	 * From email address
+	 * 发件人邮箱
 	 */
 	private String fromEmail;
 
 	/**
-	 * From name
+	 * 发件人名称
 	 */
 	private String fromName;
 
 	/**
-	 * Send status: 1-pending, 2-success, 3-failed
+	 * 发送状态: 1-待发送, 2-成功, 3-失败
 	 */
 	private Integer sendStatus;
 
 	/**
-	 * Error message if failed
+	 * 失败错误信息
 	 */
 	private String errorMessage;
 
 	/**
-	 * Send time
+	 * 发送时间
 	 */
 	private LocalDateTime sendTime;
 
 	/**
-	 * Attachment count
+	 * 附件数量
 	 */
 	private Integer attachmentCount;
 
 	/**
-	 * Remark
+	 * 备注
 	 */
 	private String remark;
 }

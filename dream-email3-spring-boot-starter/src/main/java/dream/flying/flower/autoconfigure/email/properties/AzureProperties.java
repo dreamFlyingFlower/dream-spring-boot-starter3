@@ -9,6 +9,7 @@ import lombok.Data;
  *
  * @author 飞花梦影
  * @date 2026-05-25
+ * @git {@link https://github.com/dreamFlyingFlower}
  */
 @Data
 @ConfigurationProperties(prefix = "dream.azure")

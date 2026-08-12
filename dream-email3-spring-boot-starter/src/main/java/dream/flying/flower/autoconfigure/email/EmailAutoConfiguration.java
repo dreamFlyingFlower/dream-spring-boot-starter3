@@ -10,23 +10,24 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.thymeleaf.TemplateEngine;
 
-import dream.flying.flower.autoconfigure.email.mapper.EmailSendRecipientMapper;
 import dream.flying.flower.autoconfigure.email.mapper.EmailTemplateMapper;
 import dream.flying.flower.autoconfigure.email.properties.EmailProperties;
 import dream.flying.flower.autoconfigure.email.service.EmailSendLogService;
-import dream.flying.flower.autoconfigure.email.service.EmailSendRecipientService;
+import dream.flying.flower.autoconfigure.email.service.EmailRecipientService;
 import dream.flying.flower.autoconfigure.email.service.EmailService;
 import dream.flying.flower.autoconfigure.email.service.EmailTemplateService;
-import dream.flying.flower.autoconfigure.email.service.impl.EmailSendRecipientServiceImpl;
+import dream.flying.flower.autoconfigure.email.service.impl.EmailSendLogServiceImpl;
+import dream.flying.flower.autoconfigure.email.service.impl.EmailRecipientServiceImpl;
 import dream.flying.flower.autoconfigure.email.service.impl.EmailServiceImpl;
 import dream.flying.flower.autoconfigure.email.service.impl.EmailTemplateServiceImpl;
 import dream.flying.flower.framework.constant.ConstConfig;
 
 /**
- * Email auto configuration class
+ * 邮件自动配置类
  *
  * @author 飞花梦影
- * @date 2026-05-25
+ * @date 2026-05-25 13:25:57
+ * @git {@link https://github.com/dreamFlyingFlower}
  */
 @AutoConfiguration(after = { FlywayAutoConfiguration.class })
 @MapperScan("dream.flying.flower.autoconfigure.email.mapper")
@@ -39,20 +40,26 @@ public class EmailAutoConfiguration {
 	@ConditionalOnMissingBean(EmailService.class)
 	EmailService emailService(JavaMailSender mailSender, TemplateEngine templateEngine,
 			EmailTemplateMapper templateMapper, EmailProperties emailProperties,
-			EmailSendLogService emailSendLogService, EmailSendRecipientService emailSendRecipientService) {
+			EmailSendLogService emailSendLogService, EmailRecipientService emailRecipientService) {
 		return new EmailServiceImpl(mailSender, templateEngine, templateMapper, emailProperties, emailSendLogService,
-				emailSendRecipientService);
+				emailRecipientService);
 	}
 
 	@Bean
-	@ConditionalOnMissingBean(EmailSendRecipientService.class)
-	EmailSendRecipientService emailSendRecipientService(EmailSendRecipientMapper emailSendRecipientMapper) {
-		return new EmailSendRecipientServiceImpl(emailSendRecipientMapper);
+	@ConditionalOnMissingBean(EmailSendLogService.class)
+	EmailSendLogService emailSendLogService() {
+		return new EmailSendLogServiceImpl();
+	}
+
+	@Bean
+	@ConditionalOnMissingBean(EmailRecipientService.class)
+	EmailRecipientService emailRecipientService() {
+		return new EmailRecipientServiceImpl();
 	}
 
 	@Bean
 	@ConditionalOnMissingBean(EmailTemplateService.class)
 	EmailTemplateService emailTemplateService(EmailTemplateMapper emailTemplateMapper) {
-		return new EmailTemplateServiceImpl(emailTemplateMapper);
+		return new EmailTemplateServiceImpl();
 	}
 }

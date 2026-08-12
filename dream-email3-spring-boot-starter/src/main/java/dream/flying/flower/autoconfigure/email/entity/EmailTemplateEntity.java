@@ -12,10 +12,11 @@ import lombok.ToString;
 import lombok.experimental.SuperBuilder;
 
 /**
- * Email template entity class
+ * Email template entity
  *
  * @author 飞花梦影
- * @date 2026-05-25
+ * @date 2026-05-25 13:25:57
+ * @git {@link https://github.com/dreamFlyingFlower}
  */
 @Getter
 @Setter

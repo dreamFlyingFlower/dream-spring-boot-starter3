@@ -26,6 +26,7 @@ import lombok.RequiredArgsConstructor;
  *
  * @author 飞花梦影
  * @date 2026-06-16 17:02:39
+ * @git {@link https://github.com/dreamFlyingFlower}
  */
 @RequiredArgsConstructor
 public class AzureManager {

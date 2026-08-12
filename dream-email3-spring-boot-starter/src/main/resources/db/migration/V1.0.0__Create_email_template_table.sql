@@ -43,7 +43,7 @@ CREATE TABLE IF NOT EXISTS `sys_email_send_log` (
   KEY `idx_send_time` (`send_time`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='邮件发送记录表';
 
-CREATE TABLE IF NOT EXISTS `sys_email_send_recipient` (
+CREATE TABLE IF NOT EXISTS `sys_email_recipient` (
   `id` BIGINT UNSIGNED NOT NULL COMMENT '主键',
   `send_log_id` BIGINT UNSIGNED NOT NULL COMMENT '发送记录ID(唯一,与email和recipient_type组合)',
   `email` VARCHAR(256) NOT NULL COMMENT '邮箱地址(唯一,与send_log_id和recipient_type组合)',
