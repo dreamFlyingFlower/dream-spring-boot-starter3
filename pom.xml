@@ -16,6 +16,7 @@
 
 	<modules>
 		<module>dream-captcha3-spring-boot-starter</module>
+		<module>dream-config3-spring-boot-starter</module>
 		<module>dream-cryption3-spring-boot-starter</module>
 		<module>dream-dict3-spring-boot-starter</module>
 		<module>dream-email3-spring-boot-starter</module>

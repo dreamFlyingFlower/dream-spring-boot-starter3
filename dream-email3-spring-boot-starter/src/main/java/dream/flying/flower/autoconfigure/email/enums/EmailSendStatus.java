@@ -17,7 +17,6 @@ import lombok.Getter;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public enum EmailSendStatus implements CodeMsg {
 
-	/** 与字典对应 */
 	EMAIL_SEND_STATUS("邮件发送状态"),
 
 	/** Pending status */

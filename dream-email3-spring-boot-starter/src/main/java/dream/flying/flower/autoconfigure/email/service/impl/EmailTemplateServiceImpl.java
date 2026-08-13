@@ -2,8 +2,6 @@ package dream.flying.flower.autoconfigure.email.service.impl;
 
 import org.springframework.stereotype.Service;
 
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-
 import dream.flying.flower.autoconfigure.email.convert.EmailTemplateConvert;
 import dream.flying.flower.autoconfigure.email.entity.EmailTemplateEntity;
 import dream.flying.flower.autoconfigure.email.mapper.EmailTemplateMapper;
@@ -29,10 +27,8 @@ public class EmailTemplateServiceImpl extends AbstractServiceImpl<EmailTemplateE
 
 	@Override
 	public EmailTemplateVO getByCode(String templateCode) {
-		EmailTemplateEntity entity = baseMapper.selectOne(
-				new LambdaQueryWrapper<EmailTemplateEntity>().eq(EmailTemplateEntity::getTemplateCode, templateCode)
-						.eq(EmailTemplateEntity::getDeleted, 0));
-		return entity == null ? null : baseConvert.convertt(entity);
+		EmailTemplateEntity entity = listOne(wrapper -> wrapper.eq(EmailTemplateEntity::getTemplateCode, templateCode));
+		return baseConvert.convertt(entity);
 	}
 
 	@Override

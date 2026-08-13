@@ -12,7 +12,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import dream.flying.flower.autoconfigure.dict.cache.DictCacheWarmupService;
 import dream.flying.flower.autoconfigure.dict.mapper.DictItemMapper;
 import dream.flying.flower.autoconfigure.dict.mapper.DictMapper;
-import dream.flying.flower.autoconfigure.dict.properties.DictProperties;
+import dream.flying.flower.autoconfigure.dict.properties.DreamDictProperties;
 import dream.flying.flower.autoconfigure.dict.service.DictItemService;
 import dream.flying.flower.autoconfigure.dict.service.DictService;
 import dream.flying.flower.autoconfigure.dict.service.impl.DictItemServiceImpl;
@@ -25,7 +25,7 @@ import dream.flying.flower.framework.constant.ConstConfig;
  * @author 飞花梦影
  * @date 2026-05-18
  */
-@EnableConfigurationProperties({ DictProperties.class })
+@EnableConfigurationProperties({ DreamDictProperties.class })
 @AutoConfiguration(after = { FlywayAutoConfiguration.class })
 @MapperScan("dream.flying.flower.autoconfigure.dict.mapper")
 @ConditionalOnProperty(prefix = ConstConfig.Auto.DICT, name = ConstConfig.ENABLED, havingValue = "true",
@@ -49,7 +49,7 @@ public class DictAutoConfiguration {
 	@ConditionalOnProperty(prefix = ConstConfig.Auto.DICT, name = "warmup-enabled", havingValue = "true",
 			matchIfMissing = true)
 	DictCacheWarmupService dictCacheWarmupService(RedisTemplate<String, Object> redisTemplate, DictMapper dictMapper,
-			DictItemMapper dictItemMapper, DictProperties dictProperties) {
-		return new DictCacheWarmupService(redisTemplate, dictMapper, dictItemMapper, dictProperties);
+			DictItemMapper dictItemMapper, DreamDictProperties dreamDictProperties) {
+		return new DictCacheWarmupService(redisTemplate, dictMapper, dictItemMapper, dreamDictProperties);
 	}
 }

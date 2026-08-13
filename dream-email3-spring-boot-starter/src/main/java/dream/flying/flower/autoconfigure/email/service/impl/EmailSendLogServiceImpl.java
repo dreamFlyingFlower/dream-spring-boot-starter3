@@ -22,14 +22,8 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class EmailSendLogServiceImpl extends AbstractServiceImpl<EmailSendLogEntity, EmailSendLogVO,
-		EmailSendLogQuery, EmailSendLogConvert, EmailSendLogMapper> implements EmailSendLogService {
-
-	@Override
-	public void saveLog(EmailSendLogEntity sendLog) {
-		baseMapper.insert(sendLog);
-		log.debug("Email send log saved: id={}", sendLog.getId());
-	}
+public class EmailSendLogServiceImpl extends AbstractServiceImpl<EmailSendLogEntity, EmailSendLogVO, EmailSendLogQuery,
+		EmailSendLogConvert, EmailSendLogMapper> implements EmailSendLogService {
 
 	@Override
 	public void updateLogStatus(Long id, Integer sendStatus, String errorMessage) {

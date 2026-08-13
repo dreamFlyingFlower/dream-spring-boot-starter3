@@ -15,6 +15,5 @@ import dream.flying.flower.framework.mybatis.plus.mapper.BaseMappers;
  * @git {@link https://github.com/dreamFlyingFlower}
  */
 @Mapper
-public interface EmailRecipientMapper
-		extends BaseMappers<EmailRecipientEntity, EmailRecipientVO, EmailRecipientQuery> {
+public interface EmailRecipientMapper extends BaseMappers<EmailRecipientEntity, EmailRecipientVO, EmailRecipientQuery> {
 }

@@ -14,7 +14,7 @@ import lombok.Data;
  */
 @Data
 @ConfigurationProperties(prefix = ConstConfig.Auto.DICT)
-public class DictProperties {
+public class DreamDictProperties {
 
 	/**
 	 * Enable dict feature

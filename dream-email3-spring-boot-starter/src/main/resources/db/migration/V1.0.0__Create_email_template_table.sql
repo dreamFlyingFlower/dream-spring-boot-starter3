@@ -2,7 +2,6 @@ CREATE TABLE IF NOT EXISTS `sys_email_template` (
   `id` BIGINT UNSIGNED NOT NULL COMMENT '主键',
   `template_code` VARCHAR(100) NOT NULL COMMENT '模板编码(唯一,与tenant_id组合)',
   `template_name` VARCHAR(200) NOT NULL COMMENT '模板名称',
-  `template_type` VARCHAR(50) NOT NULL COMMENT '模板类型: 验证码, 通知, 市场营销',
   `template_path` VARCHAR(500) NOT NULL COMMENT '模板文件路径相对模板目录',
   `subject` VARCHAR(64) NOT NULL COMMENT '邮件主题',
   `from_email` VARCHAR(64) DEFAULT NULL COMMENT '发件人邮件',
@@ -16,8 +15,7 @@ CREATE TABLE IF NOT EXISTS `sys_email_template` (
   `updated_at` DATETIME NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   `deleted` TINYINT UNSIGNED NOT NULL DEFAULT 0 COMMENT '是否删除:0-否; 1-是',
   PRIMARY KEY (`id`),
-  KEY `uk_template_code` (`template_code`),
-  KEY `idx_template_type` (`template_type`)
+  KEY `uk_template_code` (`template_code`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Email template table';
 
 CREATE TABLE IF NOT EXISTS `sys_email_send_log` (

@@ -14,7 +14,7 @@ import dream.flying.flower.autoconfigure.dict.entity.DictEntity;
 import dream.flying.flower.autoconfigure.dict.entity.DictItemEntity;
 import dream.flying.flower.autoconfigure.dict.mapper.DictItemMapper;
 import dream.flying.flower.autoconfigure.dict.mapper.DictMapper;
-import dream.flying.flower.autoconfigure.dict.properties.DictProperties;
+import dream.flying.flower.autoconfigure.dict.properties.DreamDictProperties;
 import dream.flying.flower.framework.constant.ConstCache;
 import dream.flying.flower.framework.constant.ConstStarter;
 import lombok.RequiredArgsConstructor;
@@ -36,11 +36,11 @@ public class DictCacheWarmupService implements CommandLineRunner {
 
 	private final DictItemMapper dictItemMapper;
 
-	private final DictProperties dictProperties;
+	private final DreamDictProperties dreamDictProperties;
 
 	@Override
 	public void run(String... args) {
-		if (!dictProperties.isWarmupEnabled()) {
+		if (!dreamDictProperties.isWarmupEnabled()) {
 			log.info("Dict cache warmup is disabled");
 			return;
 		}
@@ -52,7 +52,7 @@ public class DictCacheWarmupService implements CommandLineRunner {
 
 	@Scheduled(cron = "0 0 2 * * ?")
 	public void scheduledWarmup() {
-		if (!dictProperties.isWarmupEnabled()) {
+		if (!dreamDictProperties.isWarmupEnabled()) {
 			return;
 		}
 
@@ -81,7 +81,7 @@ public class DictCacheWarmupService implements CommandLineRunner {
 		String cacheKey = ConstCache.buildRedisKey(ConstStarter.PROJECT_NAME, ConstDict.MODULE_NAME,
 				ConstDict.DICT_CACHE_PREFIX, dict.getDictCode());
 		try {
-			redisTemplate.opsForValue().set(cacheKey, dict, dictProperties.getCacheExpireHours(), TimeUnit.HOURS);
+			redisTemplate.opsForValue().set(cacheKey, dict, dreamDictProperties.getCacheExpireHours(), TimeUnit.HOURS);
 		} catch (Exception e) {
 			log.error("Cache dict failed: dictCode={}, error={}", dict.getDictCode(), e.getMessage());
 		}
@@ -98,7 +98,7 @@ public class DictCacheWarmupService implements CommandLineRunner {
 			String cacheKey = ConstCache.buildRedisKey(ConstStarter.PROJECT_NAME, ConstDict.MODULE_NAME,
 					ConstDict.DICT_ITEMS_CACHE_PREFIX, dictId + "");
 			try {
-				redisTemplate.opsForValue().set(cacheKey, items, dictProperties.getCacheExpireHours(), TimeUnit.HOURS);
+				redisTemplate.opsForValue().set(cacheKey, items, dreamDictProperties.getCacheExpireHours(), TimeUnit.HOURS);
 			} catch (Exception e) {
 				log.error("Cache dict items failed: dictId={}, error={}", dictId, e.getMessage());
 			}

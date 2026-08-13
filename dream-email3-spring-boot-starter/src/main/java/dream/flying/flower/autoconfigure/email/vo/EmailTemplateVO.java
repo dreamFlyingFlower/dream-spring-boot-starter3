@@ -33,9 +33,6 @@ public class EmailTemplateVO extends AbstractTenantVO {
 	@Schema(description = "Template name")
 	private String templateName;
 
-	@Schema(description = "Template type: verification_code, notification, marketing, etc.")
-	private String templateType;
-
 	@Schema(description = "Template file path (relative to template directory)")
 	private String templatePath;
 

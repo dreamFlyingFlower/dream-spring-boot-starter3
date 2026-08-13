@@ -18,14 +18,15 @@ import lombok.Getter;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public enum RecipientType implements CodeMsg {
 
-	/** 与字典对应 */
 	RECIPIENT_TYPE("收件人类型"),
-	
-	/** 接收人*/
+
+	/** 接收人 */
 	TO("接收人"),
-	
-	/** 抄送人*/
+
+	/** 抄送人 */
 	CC("抄送人"),
+
+	/** 密送人 */
 	BCC("密送人");
 
 	private final String msg;

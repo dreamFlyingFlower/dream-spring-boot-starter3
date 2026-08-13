@@ -26,25 +26,11 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class EmailRecipientServiceImpl extends AbstractServiceImpl<EmailRecipientEntity,
-		EmailRecipientVO, EmailRecipientQuery, EmailRecipientConvert, EmailRecipientMapper>
-		implements EmailRecipientService {
-
-	@Override
-	public void batchSave(List<EmailRecipientEntity> recipients) {
-		if (recipients == null || recipients.isEmpty()) {
-			return;
-		}
-		for (EmailRecipientEntity recipient : recipients) {
-			baseMapper.insert(recipient);
-		}
-		log.debug("Batch saved {} email send recipients", recipients.size());
-	}
+public class EmailRecipientServiceImpl extends AbstractServiceImpl<EmailRecipientEntity, EmailRecipientVO,
+		EmailRecipientQuery, EmailRecipientConvert, EmailRecipientMapper> implements EmailRecipientService {
 
 	@Override
 	public List<EmailRecipientEntity> findBySendLogId(Long sendLogId) {
-		return baseMapper.selectList(
-				new LambdaQueryWrapper<EmailRecipientEntity>().eq(EmailRecipientEntity::getSendLogId, sendLogId)
-						.eq(EmailRecipientEntity::getDeleted, 0));
+		return list(new LambdaQueryWrapper<EmailRecipientEntity>().eq(EmailRecipientEntity::getSendLogId, sendLogId));
 	}
 }

@@ -6,8 +6,8 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 
-import dream.flying.flower.autoconfigure.email.entity.EmailTemplateEntity;
 import dream.flying.flower.autoconfigure.email.service.EmailTemplateService;
+import dream.flying.flower.autoconfigure.email.vo.EmailTemplateVO;
 import dream.flying.flower.autoconfigure.otp.manager.EmailRenderManager;
 import dream.flying.flower.enums.RegexEnum;
 import dream.flying.flower.framework.otp.OtpTransport;
@@ -49,7 +49,7 @@ public class EmailOtpTransport implements OtpTransport {
 			// 使用重试机制发送邮件
 			RetryHelper.builder().maxAttempts(3).initialDelayMs(1000).multiplier(2.0).maxDelayMs(10000).execute(() -> {
 
-				EmailTemplateEntity emailTemplateEntity = emailTemplateService.getTemplateByCode("otp");
+				EmailTemplateVO emailTemplateVo = emailTemplateService.getByCode("otp");
 				// 渲染邮件模板
 				String htmlContent = emailRenderManager.renderOtpEmail(otp);
 
@@ -57,8 +57,8 @@ public class EmailOtpTransport implements OtpTransport {
 				MimeMessage message = mailSender.createMimeMessage();
 				MimeMessageHelper helper = new MimeMessageHelper(message, true, StandardCharsets.UTF_8.name());
 
-				helper.setFrom(emailTemplateEntity.getFromEmail());
-				helper.setSubject(emailTemplateEntity.getSubject());
+				helper.setFrom(emailTemplateVo.getFromEmail());
+				helper.setSubject(emailTemplateVo.getSubject());
 				helper.setTo(receiver);
 				// true 表示 HTML 内容
 				helper.setText(htmlContent, true);

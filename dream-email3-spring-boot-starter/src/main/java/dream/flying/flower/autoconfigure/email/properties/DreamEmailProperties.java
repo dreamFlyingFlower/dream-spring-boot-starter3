@@ -2,6 +2,7 @@ package dream.flying.flower.autoconfigure.email.properties;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
+import dream.flying.flower.framework.constant.ConstConfig;
 import lombok.Data;
 
 /**
@@ -12,13 +13,18 @@ import lombok.Data;
  * @git {@link https://github.com/dreamFlyingFlower}
  */
 @Data
-@ConfigurationProperties(prefix = "dream.email")
-public class EmailProperties {
+@ConfigurationProperties(prefix = ConstConfig.Auto.EMAIL)
+public class DreamEmailProperties {
 
 	/**
 	 * Enable email feature
 	 */
 	private boolean enabled = true;
+
+	/**
+	 * Enable email endpoint
+	 */
+	private boolean enabledEndpoint = true;
 
 	/**
 	 * Template directory path
