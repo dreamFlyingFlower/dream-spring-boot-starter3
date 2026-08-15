@@ -27,15 +27,18 @@ public class ConfigQuery extends AbstractQuery {
 
 	private static final long serialVersionUID = 1L;
 
-	@Schema(description = "Config key")
+	@Schema(description = "配置键")
 	private String configKey;
 
-	@Schema(description = "Config category")
-	private String category;
+	@Schema(description = "配置值")
+	private String configValue;
 
-	@Schema(description = "Data type")
+	@Schema(description = "数据类型: string/number/boolean/json")
 	private String dataType;
 
-	@Schema(description = "Status: 0-disabled, 1-enabled")
+	@Schema(description = "配置分类")
+	private String category;
+
+	@Schema(description = "状态:0-禁用;1-可用")
 	private Integer status;
 }

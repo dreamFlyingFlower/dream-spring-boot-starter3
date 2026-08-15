@@ -27,27 +27,15 @@ public class DictQuery extends AbstractQuery {
 
 	private static final long serialVersionUID = 1L;
 
-	/**
-	 * 字典编码
-	 */
 	@Schema(description = "字典编码")
 	private String dictCode;
 
-	/**
-	 * 字典名称
-	 */
 	@Schema(description = "字典名称")
 	private String dictName;
 
-	/**
-	 * 来源
-	 */
 	@Schema(description = "来源:1-字典数据;2-动态SQL")
 	private Integer dictSource;
 
-	/**
-	 * 动态sql
-	 */
 	@Schema(description = "动态sql")
 	private String dictSql;
 }

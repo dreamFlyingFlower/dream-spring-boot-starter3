@@ -10,9 +10,10 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 import org.springframework.data.redis.core.RedisTemplate;
 
+import dream.flying.flower.autoconfigure.config.cache.ConfigCacheManager;
 import dream.flying.flower.autoconfigure.config.cache.ConfigCacheWarmupRunner;
 import dream.flying.flower.autoconfigure.config.convert.ConfigConvert;
-import dream.flying.flower.autoconfigure.config.convert.ConfigConvertImpl;
+import dream.flying.flower.autoconfigure.config.endpoint.ConfigCacheEndpoint;
 import dream.flying.flower.autoconfigure.config.endpoint.ConfigEndpoint;
 import dream.flying.flower.autoconfigure.config.mapper.ConfigMapper;
 import dream.flying.flower.autoconfigure.config.properties.DreamConfigProperties;
@@ -36,14 +37,21 @@ public class ConfigAutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean(ConfigEndpoint.class)
-	ConfigEndpoint configEndpoint(ConfigCacheWarmupRunner configCacheWarmupRunner) {
-		return new ConfigEndpoint(configCacheWarmupRunner);
+	ConfigEndpoint configEndpoint() {
+		return new ConfigEndpoint();
+	}
+
+	@Bean
+	@ConditionalOnMissingBean(ConfigEndpoint.class)
+	ConfigCacheEndpoint configCacheEndpoint(ConfigCacheWarmupRunner configCacheWarmupRunner,
+			ConfigCacheManager configCacheManager) {
+		return new ConfigCacheEndpoint(configCacheWarmupRunner, configCacheManager);
 	}
 
 	@Bean
 	@ConditionalOnMissingBean(ConfigConvert.class)
 	ConfigConvert configConvert() {
-		return new ConfigConvertImpl();
+		return ConfigConvert.INSTANCE;
 	}
 
 	@Bean
@@ -53,18 +61,31 @@ public class ConfigAutoConfiguration {
 	}
 
 	@Bean
-	@ConditionalOnMissingBean(ConfigCacheWarmupRunner.class)
-	@ConditionalOnProperty(prefix = ConstConfig.Auto.CONFIG, name = "warmup-enabled", havingValue = "true",
-			matchIfMissing = true)
-	ConfigCacheWarmupRunner configCacheWarmupRunner(RedisTemplate<String, Object> redisTemplate,
-			ConfigMapper configMapper, DreamConfigProperties dreamConfigProperties) {
-		return new ConfigCacheWarmupRunner(redisTemplate, configMapper, dreamConfigProperties);
+	@ConditionalOnMissingBean(ConfigCacheManager.class)
+	ConfigCacheManager configCacheManager(RedisTemplate<String, Object> redisTemplate, ConfigMapper configMapper,
+			DreamConfigProperties dreamConfigProperties) {
+		return new ConfigCacheManager(redisTemplate, configMapper, dreamConfigProperties);
 	}
 
 	@Bean
+	@ConditionalOnMissingBean(ConfigCacheWarmupRunner.class)
+	@ConditionalOnProperty(prefix = ConstConfig.Auto.CONFIG, name = ConstConfig.ENABLED_WARMUP, havingValue = "true",
+			matchIfMissing = true)
+	ConfigCacheWarmupRunner configCacheWarmupRunner(ConfigCacheManager configCacheManager, ConfigMapper configMapper,
+			DreamConfigProperties dreamConfigProperties) {
+		return new ConfigCacheWarmupRunner(configCacheManager, configMapper, dreamConfigProperties);
+	}
+
+	@Bean
+	@ConditionalOnProperty(prefix = ConstConfig.Auto.CONFIG, name = ConstConfig.ENABLED_API, havingValue = "true",
+			matchIfMissing = true)
 	GroupedOpenApi configApi(DreamConfigProperties dreamConfigProperties) {
 		return GroupedOpenApi.builder()
+				// 分组标识,最好不要有中文,可能出错
 				.group(dreamConfigProperties.getApiGroup())
+				// 分组展示名称
+				.displayName(dreamConfigProperties.getApiGroupName())
+				// 扫描包路径
 				.packagesToScan(dreamConfigProperties.getApiPackageScan())
 				.build();
 	}

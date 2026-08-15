@@ -3,6 +3,7 @@ package dream.flying.flower.autoconfigure.config.properties;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 import dream.flying.flower.framework.constant.ConstConfig;
+import dream.flying.flower.framework.constant.ConstStarter;
 import lombok.Data;
 
 /**
@@ -34,15 +35,25 @@ public class DreamConfigProperties {
 	/**
 	 * Enable cache warmup
 	 */
-	private boolean warmupEnabled = true;
+	private boolean enabledWarmup = true;
+
+	/**
+	 * Enable api document
+	 */
+	private boolean enabledApi = true;
 
 	/**
 	 * Document Api group
 	 */
-	private String apiGroup = "系统";
+	private String apiGroup = ConstStarter.API_GROUP;
+
+	/**
+	 * Document Api group name
+	 */
+	private String apiGroupName = ConstStarter.API_GROUP_NAME;
 
 	/**
 	 * Document Api scan package
 	 */
-	private String apiPackageScan = "dream.flying.flower.autoconfigure.config";
+	private String apiPackageScan = "dream.flying.flower.autoconfigure.dict";
 }

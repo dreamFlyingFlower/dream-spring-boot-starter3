@@ -20,7 +20,7 @@ import lombok.ToString;
 import lombok.experimental.SuperBuilder;
 
 /**
- * 日志业务视图类
+ * 日志视图类
  * 
  * @author 飞花梦影
  * @date 2025-03-18 22:41:03
@@ -32,6 +32,7 @@ import lombok.experimental.SuperBuilder;
 @SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
+@Schema(description = "日志")
 public class OperationLogVO extends AbstractTenantVO {
 
 	private static final long serialVersionUID = 1L;

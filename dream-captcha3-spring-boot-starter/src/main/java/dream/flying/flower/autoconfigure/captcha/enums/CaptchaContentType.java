@@ -18,6 +18,8 @@ import lombok.Getter;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public enum CaptchaContentType implements CodeMsg {
 
+	CAPTCHA_CONTENT_TYPE,
+
 	/** 文本 */
 	TEXT,
 
@@ -25,7 +27,7 @@ public enum CaptchaContentType implements CodeMsg {
 	ARITHMETIC;
 
 	public static CaptchaContentType get(int code) {
-		return Stream.of(values()).filter(t -> t.ordinal() + 1 == code).findFirst().orElse(null);
+		return Stream.of(values()).filter(t -> t.ordinal() == code).findFirst().orElse(null);
 	}
 
 	public static CaptchaContentType get(String code) {

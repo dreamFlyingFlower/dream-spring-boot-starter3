@@ -1,5 +1,30 @@
 # Change Log
 
+## 2026-08-15
+
+### BUG 修复
+
+#### dream-config3-spring-boot-starter 编译失败修复
+
+**变更原因:**
+- dream-config3-spring-boot-starter 编译时报 `ConstStarter`、`ConstConfig.ENABLED_WARMUP`、`ConstConfig.Auto.CONFIG` 等常量找不到
+- 根因是本地仓库中的 `dream-framework-constant3` jar 包为旧版本,未包含最新新增的常量定义
+- 同时发现 `maven-compiler-plugin` 的 `annotationProcessorPaths` 中 `lombok` 未指定版本,导致 maven-compiler-plugin 3.8.1 解析时报 `The version cannot be empty`
+
+**变更内容:**
+- 重新 `mvn clean install -DskipTests` 源码项目 `dream-framework-constant3`,将最新 jar 安装到本地仓库,使 `ConstStarter`、`ConstConfig` 等常量可用
+- 修改 [dream-config3-spring-boot-starter/pom.xml](file:///d:/person/repository/dream-spring-boot-starter3/dream-config3-spring-boot-starter/pom.xml): 为 `annotationProcessorPaths` 中的 `lombok` 显式指定版本 `1.18.42` (与 spring-boot 3.5.11 管理的版本一致)
+
+**修复结果:**
+- `dream-config3-spring-boot-starter` `mvn compile` 成功,14 个源文件全部编译通过
+- 常量引用问题彻底解决,无需在模块内复制常量
+
+**技术细节:**
+- `spring-boot-dependencies` 通过 `<scope>import</scope>` 引入,其 `<properties>` 不会传递给子模块,因此子模块的 `annotationProcessorPaths` 无法直接使用 `${lombok.version}`,必须硬编码版本号
+- 升级 `dream-framework-constant3` jar 必须使用 `clean install` 强制重新编译,普通 `install` 会因 "all classes are up to date" 跳过编译,导致旧 class 被重新打包
+
+---
+
 ## 2026-05-25
 
 ### 优化改进

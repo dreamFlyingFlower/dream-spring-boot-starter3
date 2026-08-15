@@ -1,6 +1,7 @@
 package dream.flying.flower.autoconfigure.logger;
 
 import org.mybatis.spring.annotation.MapperScan;
+import org.springdoc.core.models.GroupedOpenApi;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -22,9 +23,7 @@ import dream.flying.flower.autoconfigure.logger.aspect.ControllerLogAspect;
 import dream.flying.flower.autoconfigure.logger.aspect.OperationLogAspect;
 import dream.flying.flower.autoconfigure.logger.config.AsyncConfig;
 import dream.flying.flower.autoconfigure.logger.convert.OperationLogConvert;
-import dream.flying.flower.autoconfigure.logger.convert.OperationLogConvertImpl;
 import dream.flying.flower.autoconfigure.logger.endpoint.OperationLogEndpoint;
-import dream.flying.flower.autoconfigure.logger.processor.FlywayPropertiesBeanProcessor;
 import dream.flying.flower.autoconfigure.logger.properties.DreamLogProperties;
 import dream.flying.flower.autoconfigure.logger.service.OperationLogService;
 import dream.flying.flower.autoconfigure.logger.service.impl.DefaultOperationLogService;
@@ -48,9 +47,9 @@ import dream.flying.flower.framework.constant.ConstConfig;
  * @date 2024-01-06 15:30:45
  * @git {@link https://github.com/dreamFlyingFlower}
  */
+@Import({ AsyncConfig.class })
 @EnableConfigurationProperties({ DreamLogProperties.class })
 @MapperScan("dream.flying.flower.autoconfigure.logger.mapper")
-@Import({ AsyncConfig.class, FlywayPropertiesBeanProcessor.class })
 @EnableAspectJAutoProxy(proxyTargetClass = true, exposeProxy = true)
 @AutoConfiguration(before = { LogbookAutoConfiguration.class }, after = { FlywayAutoConfiguration.class })
 @ConditionalOnProperty(prefix = ConstConfig.Auto.LOGGER, name = ConstConfig.ENABLED, havingValue = "true",
@@ -60,7 +59,7 @@ public class OperationLogAutoConfiguration {
 	@Bean
 	@ConditionalOnMissingBean(OperationLogConvert.class)
 	OperationLogConvert operationLogConvert() {
-		return new OperationLogConvertImpl();
+		return OperationLogConvert.INSTANCE;
 	}
 
 	@Bean
@@ -103,5 +102,19 @@ public class OperationLogAutoConfiguration {
 		}
 		// 输出到控制台的日志
 		return new DefaultSink(new DefaultHttpLogFormatter(), new DefaultHttpLogWriter());
+	}
+
+	@Bean
+	@ConditionalOnProperty(prefix = ConstConfig.Auto.LOGGER, name = ConstConfig.ENABLED_API, havingValue = "true",
+			matchIfMissing = true)
+	GroupedOpenApi configApi(DreamLogProperties dreamLogProperties) {
+		return GroupedOpenApi.builder()
+				// 分组标识,最好不要有中文,可能出错
+				.group(dreamLogProperties.getApiGroup())
+				// 分组展示名称
+				.displayName(dreamLogProperties.getApiGroupName())
+				// 扫描包路径
+				.packagesToScan(dreamLogProperties.getApiPackageScan())
+				.build();
 	}
 }

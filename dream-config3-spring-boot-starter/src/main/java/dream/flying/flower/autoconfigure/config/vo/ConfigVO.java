@@ -16,7 +16,7 @@ import lombok.ToString;
 import lombok.experimental.SuperBuilder;
 
 /**
- * Config VO
+ * 配置VO
  *
  * @author 飞花梦影
  * @date 2026-08-13
@@ -28,44 +28,39 @@ import lombok.experimental.SuperBuilder;
 @SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
-@Schema(description = "Config")
+@Schema(description = "配置VO")
 public class ConfigVO extends AbstractTenantVO {
 
 	private static final long serialVersionUID = 1L;
 
-	@Schema(description = "Config key", example = "system.name", requiredMode = RequiredMode.REQUIRED)
+	@Schema(description = "配置键", example = "system.name", requiredMode = RequiredMode.REQUIRED)
 	@NotBlank(message = "Config key cannot be empty", groups = ValidAdds.class)
-	@Size(max = 128, message = "Config key length cannot exceed 128 characters", groups = { ValidAdds.class,
-			ValidEdits.class })
+	@Size(max = 128, message = "Config key length cannot exceed 128 characters",
+			groups = { ValidAdds.class, ValidEdits.class })
 	private String configKey;
 
-	@Schema(description = "Config value", example = "My System Name")
+	@Schema(description = "配置值", example = "My System Name")
 	private String configValue;
 
-	@Schema(description = "Data type: string/number/boolean/json", example = "string")
-	@Size(max = 32, message = "Data type length cannot exceed 32 characters", groups = { ValidAdds.class,
-			ValidEdits.class })
+	@Schema(description = "数据类型: string/number/boolean/json", example = "string")
+	@Size(max = 32, message = "Data type length cannot exceed 32 characters",
+			groups = { ValidAdds.class, ValidEdits.class })
 	private String dataType;
 
-	@Schema(description = "Config category", example = "system")
-	@Size(max = 64, message = "Category length cannot exceed 64 characters", groups = { ValidAdds.class,
-			ValidEdits.class })
+	@Schema(description = "配置分类", example = "system")
+	@Size(max = 64, message = "Category length cannot exceed 64 characters",
+			groups = { ValidAdds.class, ValidEdits.class })
 	private String category;
 
-	@Schema(description = "Config description", example = "System name configuration")
-	@Size(max = 512, message = "Description length cannot exceed 512 characters", groups = { ValidAdds.class,
-			ValidEdits.class })
-	private String description;
-
-	@Schema(description = "Sort index", requiredMode = RequiredMode.REQUIRED)
+	@Schema(description = "排序", requiredMode = RequiredMode.REQUIRED)
 	@Min(value = 0, message = "Sort index cannot be less than 0")
 	private Integer sortIndex;
 
-	@Schema(description = "Status: 0-disabled, 1-enabled")
+	@Schema(description = "状态:0-禁用;1-可用")
 	private Integer status;
 
-	@Schema(description = "Remark")
-	@Size(max = 256, message = "Remark length cannot exceed 256 characters", groups = { ValidAdds.class,
-			ValidEdits.class })
+	@Schema(description = "备注")
+	@Size(max = 256, message = "Remark length cannot exceed 256 characters",
+			groups = { ValidAdds.class, ValidEdits.class })
 	private String remark;
 }

@@ -13,7 +13,7 @@ import lombok.ToString;
 import lombok.experimental.SuperBuilder;
 
 /**
- * Config entity class
+ * 配置
  *
  * @author 飞花梦影
  * @date 2026-08-13
@@ -31,44 +31,39 @@ public class ConfigEntity extends AbstractTenantEntity {
 	private static final long serialVersionUID = 1L;
 
 	/**
-	 * Config key
+	 * 配置键
 	 */
 	@Unique
 	@AutoCode
 	private String configKey;
 
 	/**
-	 * Config value
+	 * 配置值
 	 */
 	private String configValue;
 
 	/**
-	 * Data type: string/number/boolean/json
+	 * 数据类型: string/number/boolean/json
 	 */
 	private String dataType;
 
 	/**
-	 * Config category
+	 * 配置分类
 	 */
 	private String category;
 
 	/**
-	 * Config description
-	 */
-	private String description;
-
-	/**
-	 * Sort index
+	 * 排序
 	 */
 	private Integer sortIndex;
 
 	/**
-	 * Status: 0-disabled, 1-enabled
+	 * 状态:0-禁用;1-可用
 	 */
 	private Integer status;
 
 	/**
-	 * Remark
+	 * 备注
 	 */
 	private String remark;
 }

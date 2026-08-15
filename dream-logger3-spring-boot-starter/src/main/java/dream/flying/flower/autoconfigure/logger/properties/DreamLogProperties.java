@@ -7,6 +7,7 @@ import java.util.regex.Pattern;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 import dream.flying.flower.framework.constant.ConstConfig;
+import dream.flying.flower.framework.constant.ConstStarter;
 import lombok.Data;
 
 /**
@@ -29,6 +30,26 @@ public class DreamLogProperties {
 	 * 是否启用终端节点
 	 */
 	private boolean enabledEndpoint = true;
+
+	/**
+	 * Enable api document
+	 */
+	private boolean enabledApi = true;
+
+	/**
+	 * Document Api group
+	 */
+	private String apiGroup = ConstStarter.API_GROUP;
+
+	/**
+	 * Document Api group name
+	 */
+	private String apiGroupName = ConstStarter.API_GROUP_NAME;
+
+	/**
+	 * Document Api scan package
+	 */
+	private String apiPackageScan = "dream.flying.flower.autoconfigure.logger";
 
 	/**
 	 * 是否将日志输出到日志文件
