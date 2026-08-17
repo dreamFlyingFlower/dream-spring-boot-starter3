@@ -11,7 +11,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.context.annotation.Scope;
 import org.springframework.data.redis.core.RedisOperations;
@@ -28,6 +27,7 @@ import dream.flying.flower.digest.DigestHelper;
 import dream.flying.flower.framework.constant.ConstCache;
 import dream.flying.flower.framework.constant.enums.RedisKey;
 import dream.flying.flower.framework.json.FastjsonHelpers;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -42,11 +42,11 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Component
 @Scope("singleton")
+@RequiredArgsConstructor
 @AutoConfigureAfter(StringRedisTemplate.class)
 public class RedisStrHelpers {
 
-	@Autowired
-	private StringRedisTemplate stringRedisTemplate;
+	private final StringRedisTemplate stringRedisTemplate;
 
 	/**
 	 * 原子比较redis集群中的值并删除redis当前key

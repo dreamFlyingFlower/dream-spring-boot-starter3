@@ -4,7 +4,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -17,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 import dream.flying.flower.web.dto.RedisDataRequest;
 import dream.flying.flower.web.dto.RedisDataResponse;
 import dream.flying.flower.web.service.RedisManageService;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -28,11 +28,11 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/api/redis")
 public class RedisManageController {
 
-	@Autowired
-	private RedisManageService redisManageService;
+	private final RedisManageService redisManageService;
 
 	/**
 	 * 获取所有Key

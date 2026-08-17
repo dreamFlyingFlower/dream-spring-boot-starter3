@@ -1,6 +1,5 @@
 package dream.flying.flower.autoconfigure.redis.access;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
@@ -10,6 +9,7 @@ import dream.flying.flower.framework.core.helper.IpHelpers;
 import dream.flying.flower.limit.LimitAccessHandler;
 import dream.flying.flower.limit.annotation.LimitAccess;
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -20,10 +20,10 @@ import lombok.extern.slf4j.Slf4j;
  * @git {@link https://github.com/dreamFlyingFlower }
  */
 @Slf4j
+@RequiredArgsConstructor
 public class DefaultAccessLimitHandler implements LimitAccessHandler {
 
-	@Autowired
-	private RedisHelpers redisHelpers;
+	private final RedisHelpers redisHelpers;
 
 	@Override
 	public boolean handler(LimitAccess limitAccess) {

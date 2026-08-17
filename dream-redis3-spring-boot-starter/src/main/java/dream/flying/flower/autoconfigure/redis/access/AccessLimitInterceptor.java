@@ -4,12 +4,12 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Objects;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.HandlerInterceptor;
 
+import dream.flying.flower.autoconfigure.redis.helper.RedisHelpers;
 import dream.flying.flower.framework.constant.ConstCache;
 import dream.flying.flower.framework.core.helper.IpHelpers;
 import dream.flying.flower.framework.web.WebHelpers;
@@ -18,6 +18,7 @@ import dream.flying.flower.limit.annotation.LimitAccess;
 import dream.flying.flower.result.Result;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
 
 /**
  * Redis接口限流
@@ -29,10 +30,12 @@ import jakarta.servlet.http.HttpServletResponse;
  * @git {@link https://github.com/dreamFlyingFlower }
  */
 @Component
+@RequiredArgsConstructor
 public class AccessLimitInterceptor implements HandlerInterceptor {
 
-	@Autowired
-	private RedisTemplate<String, Object> redisTemplate;
+	private final RedisTemplate<String, Object> redisTemplate;
+
+	private final RedisHelpers redisHelpers;
 
 	@Override
 	public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)
@@ -74,7 +77,7 @@ public class AccessLimitInterceptor implements HandlerInterceptor {
 			throws InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException,
 			NoSuchMethodException, SecurityException {
 		if (limitAccess.custom()) {
-			LimitAccessHandler limitAccessHandler = new DefaultAccessLimitHandler();
+			LimitAccessHandler limitAccessHandler = new DefaultAccessLimitHandler(redisHelpers);
 			if (limitAccess.handler() != LimitAccessHandler.class) {
 				limitAccessHandler =
 						limitAccess.handler().getDeclaredConstructor(new Class<?>[0]).newInstance(new Object[0]);

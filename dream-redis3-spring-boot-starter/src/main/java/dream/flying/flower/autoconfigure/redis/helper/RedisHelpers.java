@@ -11,7 +11,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.context.annotation.Scope;
@@ -31,6 +30,7 @@ import dream.flying.flower.framework.constant.ConstCache;
 import dream.flying.flower.framework.constant.enums.RedisKey;
 import dream.flying.flower.framework.json.FastjsonHelpers;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -44,12 +44,12 @@ import lombok.extern.slf4j.Slf4j;
 @Getter
 @Component
 @Scope("singleton")
+@RequiredArgsConstructor
 @AutoConfigureAfter(RedisConfig.class)
 @ConditionalOnBean(value = { RedisTemplate.class }, name = "redisTemplate")
 public class RedisHelpers {
 
-	@Autowired
-	private RedisTemplate<String, Object> redisTemplate;
+	private final RedisTemplate<String, Object> redisTemplate;
 
 	/**
 	 * 原子比较redis集群中的值并删除redis当前key

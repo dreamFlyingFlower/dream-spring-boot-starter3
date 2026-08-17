@@ -7,7 +7,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Configuration;
 
@@ -15,6 +14,7 @@ import dream.flying.flower.autoconfigure.redis.helper.RedisStrHelpers;
 import dream.flying.flower.framework.constant.ConstCache;
 import dream.flying.flower.framework.web.handler.SerialCodeHandler;
 import dream.flying.flower.lang.StrHelper;
+import lombok.RequiredArgsConstructor;
 
 /**
  * 序列化编码
@@ -23,12 +23,12 @@ import dream.flying.flower.lang.StrHelper;
  * @date 2024-03-29 22:30:22
  * @git {@link https://github.com/dreamFlyingFlower}
  */
-@ConditionalOnMissingBean(name = "serialCodeHandler")
 @Configuration
+@RequiredArgsConstructor
+@ConditionalOnMissingBean(name = "serialCodeHandler")
 public class RedisSerialCodeHandler implements SerialCodeHandler {
 
-	@Autowired
-	private RedisStrHelpers redisStrHelpers;
+	private final RedisStrHelpers redisStrHelpers;
 
 	@Override
 	public String generateCode(String prefix, int length) {

@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service;
 import dream.flying.flower.autoconfigure.redis.helper.RedisFactoryHelpers;
 import dream.flying.flower.web.dto.RedisDataRequest;
 import dream.flying.flower.web.monitor.RedisDbSwitchMonitor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -30,19 +31,16 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class RedisManageService {
 
-	@Autowired
-	private RedisTemplate<String, Object> redisTemplate;
+	private final RedisTemplate<String, Object> redisTemplate;
 
-	@Autowired
-	private RedisConnectionFactory defaultConnectionFactory;
+	private final RedisConnectionFactory defaultConnectionFactory;
 
-	@Autowired
-	private RedisProperties redisProperties;
+	private final RedisProperties redisProperties;
 
-	@Autowired
-	private RedisFactoryHelpers redisFactoryHelpers;
+	private final RedisFactoryHelpers redisFactoryHelpers;
 
 	@Autowired(required = false)
 	private RedisDbSwitchMonitor monitor;
