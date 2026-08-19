@@ -14,6 +14,7 @@ import dream.flying.flower.framework.constant.ConstConfig;
 import dream.flying.flower.framework.web.controller.AbstractController;
 import dream.flying.flower.result.Result;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.AllArgsConstructor;
 
 /**
@@ -23,6 +24,7 @@ import lombok.AllArgsConstructor;
  * @date 2025-03-30 00:33:23
  * @git {@link https://github.com/dreamFlyingFlower}
  */
+@Tag(name = "字典项API")
 @RestController
 @AllArgsConstructor
 @RequestMapping("/dict-item")

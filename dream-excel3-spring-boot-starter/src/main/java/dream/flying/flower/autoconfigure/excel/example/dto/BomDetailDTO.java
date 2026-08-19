@@ -11,7 +11,8 @@ import com.baomidou.mybatisplus.annotation.TableField;
 import com.fasterxml.jackson.annotation.JsonFormat;
 
 import dream.flying.flower.ConstDate;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.media.Schema.RequiredMode;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -25,125 +26,126 @@ import lombok.experimental.SuperBuilder;
 @SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
+@Schema(name = "Bom详情")
 public class BomDetailDTO implements Serializable {
 
 	private static final long serialVersionUID = 592778813131560413L;
 
-	@ApiModelProperty(value = "自增id")
+	@Schema(description = "自增id")
 	private Long id;
 
-	@ApiModelProperty(value = "bom编号", required = true)
+	@Schema(description = "bom编号", requiredMode = RequiredMode.REQUIRED)
 	private String bomCode;
 
-	@ApiModelProperty(value = "产品编号", required = true)
+	@Schema(description = "产品编号", requiredMode = RequiredMode.REQUIRED)
 	private String productCode;
 
-	@ApiModelProperty(value = "bom版本,2021/11/12，U8系统对应新增字段")
+	@Schema(description = "bom版本,2021/11/12，U8系统对应新增字段")
 	private String version;
 
-	@ApiModelProperty(value = "bom层级", required = true)
+	@Schema(description = "bom层级", requiredMode = RequiredMode.REQUIRED)
 	private Integer bomLevel;
 
-	@ApiModelProperty(value = "bom行号", required = true)
+	@Schema(description = "bom行号", requiredMode = RequiredMode.REQUIRED)
 	private Integer bomLineCode;
 
-	@ApiModelProperty(value = "上级物料编码", required = true)
+	@Schema(description = "上级物料编码", requiredMode = RequiredMode.REQUIRED)
 	private String parentMaterielCode;
 
-	@ApiModelProperty(value = "父节点id", required = true)
+	@Schema(description = "父节点id", requiredMode = RequiredMode.REQUIRED)
 	private Integer parentId;
 
-	@ApiModelProperty(value = "设备扫描模式,字典值emes_scan_model")
+	@Schema(description = "设备扫描模式,字典值emes_scan_model")
 	private String scanModel;
 
-	@ApiModelProperty(value = "物料编码", required = true)
+	@Schema(description = "物料编码", requiredMode = RequiredMode.REQUIRED)
 	private String materielCode;
 
-	@ApiModelProperty(value = "物料名称", hidden = true)
+	@Schema(description = "物料名称", hidden = true)
 	private String materielName;
 
-	@ApiModelProperty(value = "物料规格", hidden = true)
+	@Schema(description = "物料规格", hidden = true)
 	private String specification;
 
-	@ApiModelProperty(value = "物料单位", hidden = true)
+	@Schema(description = "物料单位", hidden = true)
 	private String measuringUnit;
 
-	@ApiModelProperty(value = "物料使用数量", required = true)
+	@Schema(description = "物料使用数量", requiredMode = RequiredMode.REQUIRED)
 	private BigDecimal materielNum;
 
-	@ApiModelProperty(value = "基本数量")
+	@Schema(description = "基本数量")
 	private BigDecimal basicNum;
 
-	@ApiModelProperty(value = "基础数量")
+	@Schema(description = "基础数量")
 	private BigDecimal baseNum;
 
-	@ApiModelProperty(value = "物料位置", required = true)
+	@Schema(description = "物料位置", requiredMode = RequiredMode.REQUIRED)
 	private String materielPosition;
 
-	@ApiModelProperty(value = "物料类型 1:自制件 2：采购件 3：客供件", required = true)
+	@Schema(description = "物料类型 1:自制件 2：采购件 3：客供件", requiredMode = RequiredMode.REQUIRED)
 	private String materielType;
 
-	@ApiModelProperty(value = "物料说明")
+	@Schema(description = "物料说明")
 	private String materielRemark;
 
-	@ApiModelProperty(value = "物料产地/品牌")
+	@Schema(description = "物料产地/品牌")
 	private String materielSource;
 
-	@ApiModelProperty(value = "加工路线")
+	@Schema(description = "加工路线")
 	private Integer madeId;
 
-	@ApiModelProperty(value = "加工类型")
+	@Schema(description = "加工类型")
 	private String madeType;
 
-	@ApiModelProperty(value = "加工路线编码", hidden = true)
+	@Schema(description = "加工路线编码", hidden = true)
 	private String madeCode;
 
-	@ApiModelProperty(value = "工艺/工艺路线名称", hidden = true)
+	@Schema(description = "工艺/工艺路线名称", hidden = true)
 	private String madeName;
 
-	@ApiModelProperty(value = "工艺路线级别", hidden = true)
+	@Schema(description = "工艺路线级别", hidden = true)
 	private String madeLevel;
 
-	@ApiModelProperty(value = "工作中心id", required = true)
+	@Schema(description = "工作中心id", requiredMode = RequiredMode.REQUIRED)
 	private Integer workCenterId;
 
-	@ApiModelProperty(value = "工作中心", hidden = true)
+	@Schema(description = "工作中心", hidden = true)
 	private String workCenterName;
 
-	@ApiModelProperty(value = "装配路线", required = true)
+	@Schema(description = "装配路线", requiredMode = RequiredMode.REQUIRED)
 	private String assemble;
 
-	@ApiModelProperty(value = "上料工序id", required = true)
+	@Schema(description = "上料工序id", requiredMode = RequiredMode.REQUIRED)
 	private Integer feedingProcessId;
 
-	@ApiModelProperty(value = "上料工序编码", hidden = true)
+	@Schema(description = "上料工序编码", hidden = true)
 	private String feedingProcessCode;
 
-	@ApiModelProperty(value = "上料工序名称", hidden = true)
+	@Schema(description = "上料工序名称", hidden = true)
 	private String feedingProcessName;
 
-	@ApiModelProperty(value = "子节点列表", hidden = true)
+	@Schema(description = "子节点列表", hidden = true)
 	private List<BomDetailDTO> childrenList;
 
-	@ApiModelProperty(value = "入库编码")
+	@Schema(description = "入库编码")
 	private String halfStockCode;
 
-	@ApiModelProperty(value = "入库数量")
+	@Schema(description = "入库数量")
 	private BigDecimal inQuantity;
 
-	@ApiModelProperty(value = "入库时间")
+	@Schema(description = "入库时间")
 	private LocalDateTime putLibTime;
 
-	@ApiModelProperty(value = "锁定数量")
+	@Schema(description = "锁定数量")
 	private BigDecimal lockQuantity;
 
-	@ApiModelProperty(value = "上料验证标识,字典值emes_check_flag", required = true)
+	@Schema(description = "上料验证标识,字典值emes_check_flag", requiredMode = RequiredMode.REQUIRED)
 	private String feedingCheckFlag;
 
-	@ApiModelProperty(hidden = true, value = "导入错误信息，后台返回")
+	@Schema(description = "导入错误信息，后台返回", hidden = true)
 	private String errorMsg;
 
-	@ApiModelProperty(value = "替代料标识")
+	@Schema(description = "替代料标识")
 	private String newFlag;
 
 	@JsonFormat(pattern = ConstDate.DATETIME)

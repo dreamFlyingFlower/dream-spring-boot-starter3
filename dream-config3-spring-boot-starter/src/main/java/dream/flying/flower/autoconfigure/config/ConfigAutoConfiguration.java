@@ -42,7 +42,7 @@ public class ConfigAutoConfiguration {
 	}
 
 	@Bean
-	@ConditionalOnMissingBean(ConfigEndpoint.class)
+	@ConditionalOnMissingBean(ConfigCacheEndpoint.class)
 	ConfigCacheEndpoint configCacheEndpoint(ConfigCacheWarmupRunner configCacheWarmupRunner,
 			ConfigCacheManager configCacheManager) {
 		return new ConfigCacheEndpoint(configCacheWarmupRunner, configCacheManager);
@@ -79,7 +79,8 @@ public class ConfigAutoConfiguration {
 	@Bean
 	@ConditionalOnProperty(prefix = ConstConfig.Auto.CONFIG, name = ConstConfig.ENABLED_API, havingValue = "true",
 			matchIfMissing = true)
-	GroupedOpenApi configApi(DreamConfigProperties dreamConfigProperties) {
+	@ConditionalOnMissingBean(name = "systemGroupedOpenApi")
+	GroupedOpenApi systemGroupedOpenApi(DreamConfigProperties dreamConfigProperties) {
 		return GroupedOpenApi.builder()
 				// 分组标识,最好不要有中文,可能出错
 				.group(dreamConfigProperties.getApiGroup())

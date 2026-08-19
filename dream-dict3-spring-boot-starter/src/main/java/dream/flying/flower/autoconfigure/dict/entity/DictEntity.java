@@ -43,17 +43,27 @@ public class DictEntity extends AbstractTenantEntity {
 	private String dictName;
 
 	/**
-	 * Internationalization message code (links to sys_localization.messageCode)
+	 * Internationalization message code (links to sys_localize.localizeCode)
 	 */
-	private String messageCode;
+	private String localizeCode;
 
 	/**
-	 * Remark
+	 * Dict source: 1-dict data;2-dynamic sql
 	 */
-	private String remark;
+	private Integer dictSource;
+
+	/**
+	 * Dynamic sql
+	 */
+	private String dictSql;
 
 	/**
 	 * Status: 0-disabled, 1-enabled
 	 */
 	private Integer status;
+
+	/**
+	 * Remark
+	 */
+	private String remark;
 }

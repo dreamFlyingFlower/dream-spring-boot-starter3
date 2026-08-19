@@ -55,5 +55,5 @@ public class DreamDictProperties {
 	/**
 	 * Document Api scan package
 	 */
-	private String apiPackageScan = "dream.flying.flower.autoconfigure.config";
+	private String apiPackageScan = "dream.flying.flower.autoconfigure";
 }

@@ -38,4 +38,7 @@ public class DictQuery extends AbstractQuery {
 
 	@Schema(description = "动态sql")
 	private String dictSql;
+
+	@Schema(description = "状态: 0-禁用;1-可用")
+	private Integer status;
 }

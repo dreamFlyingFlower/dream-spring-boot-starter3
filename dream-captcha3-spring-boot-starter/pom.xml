@@ -8,6 +8,7 @@
 		<groupId>dream.flying.flower</groupId>
 		<artifactId>dream-spring-boot-starter3</artifactId>
 		<version>0.0.1</version>
+		<relativePath />
 	</parent>
 
 	<artifactId>dream-captcha3-spring-boot-starter</artifactId>
@@ -39,35 +40,4 @@
 			<optional>true</optional>
 		</dependency>
 	</dependencies>
-
-	<build>
-		<plugins>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-compiler-plugin</artifactId>
-				<version>${maven-compiler-plugin.version}</version>
-				<configuration>
-					<source>${java.version}</source>
-					<target>${java.version}</target>
-					<compilerArgs>
-						<!-- 高版本springboot需要指定PathVariable,RequestParam注解编译形参,否则参数会变成arg0,arg1... -->
-						<arg>-parameters</arg>
-					</compilerArgs>
-					<annotationProcessorPaths>
-						<!-- lombok,mapstruct只编译源码,但是不打包到jar/war中,顺序不能错,必须指定版本 -->
-						<path>
-							<groupId>org.projectlombok</groupId>
-							<artifactId>lombok</artifactId>
-							<version>${lombok.version}</version>
-						</path>
-						<path>
-							<groupId>org.mapstruct</groupId>
-							<artifactId>mapstruct-processor</artifactId>
-							<version>${mapstruct.version}</version>
-						</path>
-					</annotationProcessorPaths>
-				</configuration>
-			</plugin>
-		</plugins>
-	</build>
 </project>

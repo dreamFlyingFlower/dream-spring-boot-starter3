@@ -42,12 +42,12 @@ public class DictVO extends AbstractTenantVO {
 
 	@Schema(description = "字典名称", example = "性别", requiredMode = RequiredMode.REQUIRED)
 	@NotBlank(message = "字典名称不能为空", groups = ValidAdds.class)
-	@Size(max = 32, message = "字典名称长度不能超过 32 个字符", groups = { ValidAdds.class, ValidEdits.class })
+	@Size(max = 64, message = "字典名称长度不能超过 64 个字符", groups = { ValidAdds.class, ValidEdits.class })
 	private String dictName;
 
 	@Schema(description = "国际化消息编码", example = "gender")
-	@Size(max = 32, message = "动态sql长度不能超过 32 个字符", groups = { ValidAdds.class, ValidEdits.class })
-	private String messageCode;
+	@Size(max = 32, message = "国际化消息编码不能超过 32 个字符", groups = { ValidAdds.class, ValidEdits.class })
+	private String localizeCode;
 
 	@Schema(description = "来源:1-字典数据;2-动态SQL")
 	private Integer dictSource;
@@ -58,7 +58,7 @@ public class DictVO extends AbstractTenantVO {
 
 	@Schema(description = "排序", requiredMode = RequiredMode.REQUIRED)
 	@Min(value = 0, message = "排序值不能小于0")
-	private Integer sortIndex;
+	private Integer status;
 
 	@Schema(description = "备注", example = "性别字典")
 	@Size(max = 256, message = "备注长度不能超过 256 个字符", groups = { ValidAdds.class, ValidEdits.class })

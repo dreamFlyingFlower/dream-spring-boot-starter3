@@ -8,6 +8,7 @@
 		<groupId>dream.flying.flower</groupId>
 		<artifactId>dream-spring-boot-starter3</artifactId>
 		<version>0.0.1</version>
+		<relativePath />
 	</parent>
 
 	<artifactId>dream-otp3-spring-boot-starter</artifactId>

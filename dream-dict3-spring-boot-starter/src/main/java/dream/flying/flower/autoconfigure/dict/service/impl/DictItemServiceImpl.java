@@ -30,7 +30,6 @@ public class DictItemServiceImpl
 	@Override
 	public List<DictItemEntity> listByDictId(Long dictId) {
 		return list(new LambdaQueryWrapper<DictItemEntity>().eq(DictItemEntity::getDictId, dictId)
-				.eq(DictItemEntity::getStatus, 1)
 				.eq(DictItemEntity::getDeleted, 0)
 				.orderByAsc(DictItemEntity::getSortIndex));
 	}
@@ -38,7 +37,6 @@ public class DictItemServiceImpl
 	@Override
 	public List<DictItemEntity> listByDictIdAndStatus(Long dictId, Integer status) {
 		return list(new LambdaQueryWrapper<DictItemEntity>().eq(DictItemEntity::getDictId, dictId)
-				.eq(status != null, DictItemEntity::getStatus, status)
 				.eq(DictItemEntity::getDeleted, 0)
 				.orderByAsc(DictItemEntity::getSortIndex));
 	}

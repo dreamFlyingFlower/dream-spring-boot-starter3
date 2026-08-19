@@ -21,7 +21,7 @@
 		<module>dream-dict3-spring-boot-starter</module>
 		<module>dream-email3-spring-boot-starter</module>
 		<module>dream-excel3-spring-boot-starter</module>
-		<module>dream-i18n3-spring-boot-starter</module>
+		<module>dream-localize3-spring-boot-starter</module>
 		<module>dream-logger3-spring-boot-starter</module>
 		<module>dream-mybatis-plus3-spring-boot-starter</module>
 		<module>dream-oss3-spring-boot-starter</module>
@@ -31,5 +31,36 @@
 		<module>dream-sms3-spring-boot-starter</module>
 		<module>dream-web3-spring-boot-starter</module>
 	</modules>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>${maven-compiler-plugin.version}</version>
+				<configuration>
+					<source>${java.version}</source>
+					<target>${java.version}</target>
+					<compilerArgs>
+						<!-- 高版本springboot需要指定PathVariable,RequestParam注解编译形参,否则方法调用会抛出参数无法解析异常 -->
+						<arg>-parameters</arg>
+					</compilerArgs>
+					<annotationProcessorPaths>
+						<!-- lombok,mapstruct只编译源码,但是不打包到jar/war中,顺序不能错,必须指定版本 -->
+						<path>
+							<groupId>org.projectlombok</groupId>
+							<artifactId>lombok</artifactId>
+							<version>${lombok.version}</version>
+						</path>
+						<path>
+							<groupId>org.mapstruct</groupId>
+							<artifactId>mapstruct-processor</artifactId>
+							<version>${mapstruct.version}</version>
+						</path>
+					</annotationProcessorPaths>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
 
 </project>

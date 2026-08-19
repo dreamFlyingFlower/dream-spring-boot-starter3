@@ -8,6 +8,7 @@
 		<groupId>dream.flying.flower</groupId>
 		<artifactId>dream-spring-boot-starter3</artifactId>
 		<version>0.0.1</version>
+		<relativePath />
 	</parent>
 
 	<artifactId>dream-dict3-spring-boot-starter</artifactId>
@@ -29,7 +30,7 @@
 		</dependency>
 		<dependency>
 			<groupId>org.springdoc</groupId>
-			<artifactId>springdoc-openapi-starter-webmvc-api</artifactId>
+			<artifactId>springdoc-openapi-starter-common</artifactId>
 		</dependency>
 		<!-- Flyway -->
 		<dependency>
@@ -52,33 +53,4 @@
 			<optional>true</optional>
 		</dependency>
 	</dependencies>
-
-	<build>
-		<plugins>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-compiler-plugin</artifactId>
-				<version>${maven-compiler-plugin.version}</version>
-				<configuration>
-					<source>${java.version}</source>
-					<target>${java.version}</target>
-					<compilerArgs>
-						<arg>-parameters</arg>
-					</compilerArgs>
-					<annotationProcessorPaths>
-						<path>
-							<groupId>org.projectlombok</groupId>
-							<artifactId>lombok</artifactId>
-							<version>${lombok.version}</version>
-						</path>
-						<path>
-							<groupId>org.mapstruct</groupId>
-							<artifactId>mapstruct-processor</artifactId>
-							<version>${mapstruct.version}</version>
-						</path>
-					</annotationProcessorPaths>
-				</configuration>
-			</plugin>
-		</plugins>
-	</build>
 </project>

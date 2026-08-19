@@ -64,7 +64,6 @@ public class DictCacheManager {
 	public void cacheDictItems(Long dictId) {
 		List<DictItemEntity> items =
 				dictItemMapper.selectList(new LambdaQueryWrapper<DictItemEntity>().eq(DictItemEntity::getDictId, dictId)
-						.eq(DictItemEntity::getStatus, 1)
 						.eq(DictItemEntity::getDeleted, 0)
 						.orderByAsc(DictItemEntity::getSortIndex));
 
@@ -187,7 +186,6 @@ public class DictCacheManager {
 			// Cache miss, load from DB
 			List<DictItemEntity> items = dictItemMapper
 					.selectList(new LambdaQueryWrapper<DictItemEntity>().eq(DictItemEntity::getDictId, dict.getId())
-							.eq(DictItemEntity::getStatus, 1)
 							.eq(DictItemEntity::getDeleted, 0)
 							.orderByAsc(DictItemEntity::getSortIndex));
 			if (!items.isEmpty()) {

@@ -28,17 +28,17 @@ import lombok.RequiredArgsConstructor;
  * @date 2026-08-13 09:34:11
  * @git {@link https://github.com/dreamFlyingFlower}
  */
-@Tag(name = "配置缓存API")
+@Tag(name = "字典缓存API")
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/config-cache")
-@ConditionalOnProperty(prefix = ConstConfig.Auto.CONFIG, name = ConstConfig.ENABLED_ENDPOINT, havingValue = "true",
+@RequestMapping("/dict-cache")
+@ConditionalOnProperty(prefix = ConstConfig.Auto.DICT, name = ConstConfig.ENABLED_ENDPOINT, havingValue = "true",
 		matchIfMissing = true)
 public class DictCacheEndpoint implements BaseController {
 
-	private final DictCacheWarmupRunner dictCacheWarmupRunner;
-
 	private final DictCacheManager dictCacheManager;
+
+	private final DictCacheWarmupRunner dictCacheWarmupRunner;
 
 	@Operation(summary = "缓存预热", description = "手动触发全量缓存预热", method = "GET")
 	@GetMapping("/warmup")

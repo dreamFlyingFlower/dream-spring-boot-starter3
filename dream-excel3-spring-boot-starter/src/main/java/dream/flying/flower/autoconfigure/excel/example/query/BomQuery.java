@@ -1,7 +1,7 @@
 package dream.flying.flower.autoconfigure.excel.example.query;
 
 import dream.flying.flower.framework.web.query.AbstractQuery;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -19,21 +19,21 @@ public class BomQuery extends AbstractQuery {
 
 	private static final long serialVersionUID = 2529364438634102497L;
 
-	@ApiModelProperty(value = "自增id")
+	@Schema(description = "自增id")
 	private Long id;
 
-	@ApiModelProperty(value = "产品编号")
+	@Schema(description = "产品编号")
 	private String productCode;
 
-	@ApiModelProperty(value = "产品名称")
+	@Schema(description = "产品名称")
 	private String productName;
 
-	@ApiModelProperty(value = "有效标识，0：无效；1：有效 2：待维护")
+	@Schema(description = "有效标识，0：无效；1：有效 2：待维护")
 	private String isEnable;
 
-	@ApiModelProperty(value = "有效标识，0：手动新增；1：外部导入")
+	@Schema(description = "有效标识，0：手动新增；1：外部导入")
 	private String isFromImport;
 
-	@ApiModelProperty(value = "bom状态")
+	@Schema(description = "bom状态")
 	private String state;
 }

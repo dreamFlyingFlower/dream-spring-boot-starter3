@@ -33,9 +33,12 @@ public class DictItemQuery extends AbstractQuery {
 	@Schema(description = "字典编码")
 	private String dictCode;
 
-	@Schema(description = "字典项值")
-	private Integer dictValue;
+	@Schema(description = "字典项编码")
+	private String itemCode;
 
-	@Schema(description = "字典标签")
-	private String dictLabel;
+	@Schema(description = "字典项名")
+	private String itemName;
+
+	@Schema(description = "字典项值")
+	private Integer itemValue;
 }

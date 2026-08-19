@@ -53,14 +53,14 @@ public class DictItemEntity extends AbstractTenantEntity {
 	private String itemName;
 
 	/**
-	 * Internationalization message code (links to sys_localization.messageCode)
-	 */
-	private String messageCode;
-
-	/**
 	 * Dictionary item value
 	 */
-	private String itemValue;
+	private Integer itemValue;
+
+	/**
+	 * Internationalization message code (links to sys_localize.localizeCode)
+	 */
+	private String localizeCode;
 
 	/**
 	 * Sort index
@@ -68,7 +68,7 @@ public class DictItemEntity extends AbstractTenantEntity {
 	private Integer sortIndex;
 
 	/**
-	 * Status: 0-disabled, 1-enabled
+	 * Remark
 	 */
-	private Integer status;
+	private String remark;
 }

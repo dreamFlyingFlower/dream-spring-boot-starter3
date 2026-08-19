@@ -12,6 +12,11 @@ import org.springframework.data.redis.core.RedisTemplate;
 
 import dream.flying.flower.autoconfigure.dict.cache.DictCacheManager;
 import dream.flying.flower.autoconfigure.dict.cache.DictCacheWarmupRunner;
+import dream.flying.flower.autoconfigure.dict.convert.DictConvert;
+import dream.flying.flower.autoconfigure.dict.convert.DictItemConvert;
+import dream.flying.flower.autoconfigure.dict.endpoint.DictCacheEndpoint;
+import dream.flying.flower.autoconfigure.dict.endpoint.DictEndpoint;
+import dream.flying.flower.autoconfigure.dict.endpoint.DictItemEndpoint;
 import dream.flying.flower.autoconfigure.dict.mapper.DictItemMapper;
 import dream.flying.flower.autoconfigure.dict.mapper.DictMapper;
 import dream.flying.flower.autoconfigure.dict.properties.DreamDictProperties;
@@ -34,6 +39,30 @@ import dream.flying.flower.framework.constant.ConstConfig;
 @ConditionalOnProperty(prefix = ConstConfig.Auto.DICT, name = ConstConfig.ENABLED, havingValue = "true",
 		matchIfMissing = true)
 public class DictAutoConfiguration {
+
+	@Bean
+	@ConditionalOnMissingBean(DictConvert.class)
+	DictConvert dictConvert() {
+		return DictConvert.INSTANCE;
+	}
+
+	@Bean
+	@ConditionalOnMissingBean(DictItemConvert.class)
+	DictItemConvert dictItemConvert() {
+		return DictItemConvert.INSTANCE;
+	}
+
+	@Bean
+	@ConditionalOnMissingBean(DictEndpoint.class)
+	DictEndpoint dictEndpoint() {
+		return new DictEndpoint();
+	}
+
+	@Bean
+	@ConditionalOnMissingBean(DictItemEndpoint.class)
+	DictItemEndpoint dictItemEndpoint() {
+		return new DictItemEndpoint();
+	}
 
 	@Bean
 	@ConditionalOnMissingBean(DictService.class)
@@ -64,9 +93,17 @@ public class DictAutoConfiguration {
 	}
 
 	@Bean
+	@ConditionalOnMissingBean(DictCacheEndpoint.class)
+	DictCacheEndpoint dictCacheEndpoint(DictCacheManager dictCacheManager,
+			DictCacheWarmupRunner dictCacheWarmupRunner) {
+		return new DictCacheEndpoint(dictCacheManager, dictCacheWarmupRunner);
+	}
+
+	@Bean
 	@ConditionalOnProperty(prefix = ConstConfig.Auto.DICT, name = ConstConfig.ENABLED_API, havingValue = "true",
 			matchIfMissing = true)
-	GroupedOpenApi configApi(DreamDictProperties dreamDictProperties) {
+	@ConditionalOnMissingBean(name = "systemGroupedOpenApi")
+	GroupedOpenApi systemGroupedOpenApi(DreamDictProperties dreamDictProperties) {
 		return GroupedOpenApi.builder()
 				// 分组标识,最好不要有中文,可能出错
 				.group(dreamDictProperties.getApiGroup())

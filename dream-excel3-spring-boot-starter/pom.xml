@@ -8,6 +8,7 @@
 		<groupId>dream.flying.flower</groupId>
 		<artifactId>dream-spring-boot-starter3</artifactId>
 		<version>0.0.1</version>
+		<relativePath />
 	</parent>
 
 	<artifactId>dream-excel3-spring-boot-starter</artifactId>
@@ -24,27 +25,27 @@
 			<artifactId>dream-framework-office3</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>io.springfox</groupId>
-			<artifactId>springfox-swagger-common</artifactId>
-			<version>3.0.0</version>
-		</dependency>
-		<dependency>
 			<groupId>org.springdoc</groupId>
-			<artifactId>springdoc-openapi-common</artifactId>
-			<version>1.7.0</version>
+			<artifactId>springdoc-openapi-starter-common</artifactId>
 		</dependency>
-		<dependency>
-			<groupId>org.springdoc</groupId>
-			<artifactId>springdoc-openapi-starter-webflux-api</artifactId>
-			<version>2.3.0</version>
-		</dependency>
+		<!--		<dependency>-->
+		<!--			<groupId>io.springfox</groupId>-->
+		<!--			<artifactId>springfox-swagger-common</artifactId>-->
+		<!--			<version>3.0.0</version>-->
+		<!--		</dependency>-->
+		<!--		<dependency>-->
+		<!--			<groupId>org.springdoc</groupId>-->
+		<!--			<artifactId>springdoc-openapi-common</artifactId>-->
+		<!--			<version>1.7.0</version>-->
+		<!--		</dependency>-->
+		<!--		<dependency>-->
+		<!--			<groupId>org.springdoc</groupId>-->
+		<!--			<artifactId>springdoc-openapi-starter-webflux-api</artifactId>-->
+		<!--			<version>2.3.0</version>-->
+		<!--		</dependency>-->
 		<dependency>
 			<groupId>org.springdoc</groupId>
 			<artifactId>springdoc-openapi-starter-webflux-ui</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>com.github.xiaoymin</groupId>
-			<artifactId>knife4j-openapi3-jakarta-spring-boot-starter</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -62,18 +63,4 @@
 			<optional>true</optional>
 		</dependency>
 	</dependencies>
-
-	<build>
-		<plugins>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-compiler-plugin</artifactId>
-				<version>3.11.0</version>
-				<configuration>
-					<source>${java.version}</source>
-					<target>${java.version}</target>
-				</configuration>
-			</plugin>
-		</plugins>
-	</build>
 </project>
