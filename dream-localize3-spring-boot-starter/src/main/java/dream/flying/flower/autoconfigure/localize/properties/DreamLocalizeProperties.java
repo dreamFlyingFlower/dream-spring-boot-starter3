@@ -55,5 +55,5 @@ public class DreamLocalizeProperties {
 	/**
 	 * Document Api scan package
 	 */
-	private String apiPackageScan = "dream.flying.flower.autoconfigure.localize";
+	private String apiPackageScan = ConstStarter.API_PACKAGE_SCAN;
 }
