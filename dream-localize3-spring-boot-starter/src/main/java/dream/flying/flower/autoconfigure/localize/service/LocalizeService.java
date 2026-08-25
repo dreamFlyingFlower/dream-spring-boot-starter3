@@ -18,21 +18,21 @@ import dream.flying.flower.framework.mybatis.plus.service.BaseServices;
  */
 public interface LocalizeService extends BaseServices<LocalizeEntity, LocalizeVO, LocalizeQuery> {
 
-	String getMessage(String langCode, String messageCode);
+	String getMessage(String localizeCode);
 
-	String getMessage(String messageCode);
+	String getMessage(String localizeCode, String lang);
 
-	Map<String, String> getAllMessages(String langCode);
+	Map<String, String> getAllMessages(String lang);
 
-	void clearCache(String langCode);
+	void clearCache(String lang);
 
 	void clearAllCache();
 
-	String getDictName(String messageCode, Locale locale);
+	String getDictName(String localizeCode, Locale locale);
 
-	String getDictItemName(String messageCode, Locale locale);
+	String getDictItemName(String localizeCode, Locale locale);
 
-	Map<String, String> getDictI18nNames(List<String> messageCodes, Locale locale);
+	Map<String, String> getDictI18nNames(List<String> localizeCodes, Locale locale);
 
-	Map<String, String> getDictItemI18nNames(List<String> messageCodes, Locale locale);
+	Map<String, String> getDictItemI18nNames(List<String> localizeCodes, Locale locale);
 }

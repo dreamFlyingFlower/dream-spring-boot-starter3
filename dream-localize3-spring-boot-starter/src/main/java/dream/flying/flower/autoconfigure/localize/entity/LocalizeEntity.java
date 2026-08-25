@@ -31,12 +31,12 @@ public class LocalizeEntity extends AbstractTenantEntity {
 	/**
 	 * 国际化编码
 	 */
-	private String messageCode;
+	private String localizeCode;
 
 	/**
-	 * 国际化信息内容
+	 * 国际化信息
 	 */
-	private String messageContent;
+	private String localizeMessage;
 
 	/**
 	 * 语言: zh_CN, en_US
@@ -57,4 +57,9 @@ public class LocalizeEntity extends AbstractTenantEntity {
 	 * 区域变体代码
 	 */
 	private String variant;
+
+	/**
+	 * 备注
+	 */
+	private String remark;
 }

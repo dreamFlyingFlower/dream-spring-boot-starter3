@@ -7,6 +7,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.util.CollectionUtils;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 
@@ -21,6 +22,7 @@ import dream.flying.flower.autoconfigure.localize.vo.LocalizeVO;
 import dream.flying.flower.framework.constant.ConstCache;
 import dream.flying.flower.framework.constant.ConstStarter;
 import dream.flying.flower.framework.mybatis.plus.service.impl.AbstractServiceImpl;
+import dream.flying.flower.lang.StrHelper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -33,17 +35,23 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 @RequiredArgsConstructor
-public class LocalizeServiceImpl extends AbstractServiceImpl<LocalizeEntity, LocalizeVO, LocalizeQuery,
-		LocalizeConvert, LocalizeMapper> implements LocalizeService {
+public class LocalizeServiceImpl
+		extends AbstractServiceImpl<LocalizeEntity, LocalizeVO, LocalizeQuery, LocalizeConvert, LocalizeMapper>
+		implements LocalizeService {
 
 	private final RedisTemplate<String, String> redisTemplate;
 
 	private final DreamLocalizeProperties dreamLocalizeProperties;
 
 	@Override
-	public String getMessage(String langCode, String messageCode) {
+	public String getMessage(String localizeCode) {
+		return getMessage(localizeCode, getLang());
+	}
+
+	@Override
+	public String getMessage(String localizeCode, String lang) {
 		String cacheKey = ConstCache.buildRedisKey(ConstStarter.PROJECT_NAME, ConstLocalize.MODULE_NAME,
-				ConstLocalize.I18N_CACHE_PREFIX, langCode, messageCode);
+				ConstLocalize.I18N_CACHE_PREFIX, lang, localizeCode);
 
 		// Try to get from cache first
 		try {
@@ -53,38 +61,33 @@ public class LocalizeServiceImpl extends AbstractServiceImpl<LocalizeEntity, Loc
 			}
 		} catch (Exception e) {
 			// Redis connection failed, query directly from database
+			log.info("Localize cache does not exist or query failed from redis,retrieving from databse");
 		}
 
 		// Query from database
-		List<LocalizeEntity> messages =
-				list(new LambdaQueryWrapper<LocalizeEntity>().eq(LocalizeEntity::getLang, langCode)
-						.eq(LocalizeEntity::getMessageCode, messageCode)
-						.eq(LocalizeEntity::getDeleted, 0));
+		List<LocalizeEntity> messages = list(lqw -> lqw.eq(LocalizeEntity::getLang, lang)
+				.eq(LocalizeEntity::getLocalizeCode, localizeCode)
+				.eq(LocalizeEntity::getDeleted, 0));
 
 		if (!messages.isEmpty()) {
-			String messageContent = messages.get(0).getMessageContent();
+			String localizeContent = messages.get(0).getLocalizeMessage();
 			// Put into cache
 			try {
 				redisTemplate.opsForValue()
-						.set(cacheKey, messageContent, dreamLocalizeProperties.getCacheExpireHours(), TimeUnit.HOURS);
+						.set(cacheKey, localizeContent, dreamLocalizeProperties.getCacheExpireHours(), TimeUnit.HOURS);
 			} catch (Exception e) {
 				// Redis connection failed, ignore cache operation
 				e.printStackTrace();
 			}
-			return messageContent;
+			return localizeContent;
 		}
 		return null;
 	}
 
 	@Override
-	public String getMessage(String messageCode) {
-		return getMessage("zh_CN", messageCode);
-	}
-
-	@Override
-	public Map<String, String> getAllMessages(String langCode) {
+	public Map<String, String> getAllMessages(String lang) {
 		String cacheKey = ConstCache.buildRedisKey(ConstStarter.PROJECT_NAME, ConstLocalize.MODULE_NAME,
-				ConstLocalize.I18N_ALL_CACHE_PREFIX, langCode);
+				ConstLocalize.I18N_ALL_CACHE_PREFIX, lang);
 
 		// Try to get from cache first
 		try {
@@ -100,12 +103,11 @@ public class LocalizeServiceImpl extends AbstractServiceImpl<LocalizeEntity, Loc
 		}
 
 		// Query from database
-		List<LocalizeEntity> messages =
-				list(new LambdaQueryWrapper<LocalizeEntity>().eq(LocalizeEntity::getLang, langCode)
-						.eq(LocalizeEntity::getDeleted, 0));
+		List<LocalizeEntity> messages = list(new LambdaQueryWrapper<LocalizeEntity>().eq(LocalizeEntity::getLang, lang)
+				.eq(LocalizeEntity::getDeleted, 0));
 
 		Map<String, String> messageMap = messages.stream()
-				.collect(Collectors.toMap(LocalizeEntity::getMessageCode, LocalizeEntity::getMessageContent));
+				.collect(Collectors.toMap(LocalizeEntity::getLocalizeCode, LocalizeEntity::getLocalizeMessage));
 
 		// Put into cache
 		try {
@@ -121,19 +123,16 @@ public class LocalizeServiceImpl extends AbstractServiceImpl<LocalizeEntity, Loc
 		return messageMap;
 	}
 
-	/**
-	 * Clear cache for specified language
-	 */
 	@Override
-	public void clearCache(String langCode) {
+	public void clearCache(String lang) {
 		try {
 			String allCacheKey = ConstCache.buildRedisKey(ConstStarter.PROJECT_NAME, ConstLocalize.MODULE_NAME,
-					ConstLocalize.I18N_ALL_CACHE_PREFIX, langCode);
+					ConstLocalize.I18N_ALL_CACHE_PREFIX, lang);
 			redisTemplate.delete(allCacheKey);
 
 			// Clear all message caches for this language
 			String pattern = ConstCache.buildRedisKey(ConstStarter.PROJECT_NAME, ConstLocalize.MODULE_NAME,
-					ConstLocalize.I18N_CACHE_PREFIX, langCode, "*");
+					ConstLocalize.I18N_CACHE_PREFIX, lang, "*");
 			redisTemplate.delete(redisTemplate.keys(pattern));
 		} catch (Exception e) {
 			// Redis connection failed, ignore cache operation
@@ -161,70 +160,70 @@ public class LocalizeServiceImpl extends AbstractServiceImpl<LocalizeEntity, Loc
 	/**
 	 * Get internationalized dict name
 	 *
-	 * @param messageCode message code
+	 * @param localizeCode localize code
 	 * @param locale locale
 	 * @return internationalized dict name, or null if not exists
 	 */
 	@Override
-	public String getDictName(String messageCode, Locale locale) {
-		if (messageCode == null || messageCode.isEmpty()) {
+	public String getDictName(String localizeCode, Locale locale) {
+		if (StrHelper.isBlank(localizeCode)) {
 			return null;
 		}
-		String langCode = getLangCode(locale);
-		return getMessage(langCode, messageCode);
+		String lang = getLang(locale);
+		return getMessage(localizeCode, lang);
 	}
 
 	/**
 	 * Get internationalized dict item name
 	 *
-	 * @param messageCode message code
+	 * @param localizeCode localize code
 	 * @param locale locale
 	 * @return internationalized dict item name, or null if not exists
 	 */
 	@Override
-	public String getDictItemName(String messageCode, Locale locale) {
-		if (messageCode == null || messageCode.isEmpty()) {
+	public String getDictItemName(String localizeCode, Locale locale) {
+		if (StrHelper.isBlank(localizeCode)) {
 			return null;
 		}
-		String langCode = getLangCode(locale);
-		return getMessage(langCode, messageCode);
+		String lang = getLang(locale);
+		return getMessage(localizeCode, lang);
 	}
 
 	/**
 	 * Batch get dict internationalized content
 	 *
-	 * @param messageCodes message codes list
+	 * @param localizeCodes localize codes list
 	 * @param locale locale
-	 * @return Map<messageCode, internationalized content>
+	 * @return Map<localizeCode, internationalized content>
 	 */
 	@Override
-	public Map<String, String> getDictI18nNames(List<String> messageCodes, Locale locale) {
-		if (messageCodes == null || messageCodes.isEmpty()) {
+	public Map<String, String> getDictI18nNames(List<String> localizeCodes, Locale locale) {
+		if (CollectionUtils.isEmpty(localizeCodes)) {
 			return Map.of();
 		}
-		String langCode = getLangCode(locale);
-		return getAllMessages(langCode).entrySet()
+		String lang = getLang(locale);
+		return getAllMessages(lang).entrySet()
 				.stream()
-				.filter(entry -> messageCodes.contains(entry.getKey()))
+				.filter(entry -> localizeCodes.contains(entry.getKey()))
 				.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 	}
 
 	/**
 	 * Batch get dict item internationalized content
 	 *
-	 * @param messageCodes message codes list
+	 * @param localizeCodes message codes list
 	 * @param locale locale
-	 * @return Map<messageCode, internationalized content>
+	 * @return Map<localizeCode, internationalized content>
 	 */
 	@Override
-	public Map<String, String> getDictItemI18nNames(List<String> messageCodes, Locale locale) {
-		if (messageCodes == null || messageCodes.isEmpty()) {
+	public Map<String, String> getDictItemI18nNames(List<String> localizeCodes, Locale locale) {
+		if (CollectionUtils.isEmpty(localizeCodes)) {
 			return Map.of();
 		}
-		String langCode = getLangCode(locale);
-		return getAllMessages(langCode).entrySet()
+		String lang = getLang(locale);
+		return getAllMessages(lang).entrySet()
 				.stream()
-				.filter(entry -> messageCodes.contains(entry.getKey()))
+				.filter(entry -> localizeCodes.contains(entry.getKey()))
 				.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 	}
 
@@ -234,9 +233,19 @@ public class LocalizeServiceImpl extends AbstractServiceImpl<LocalizeEntity, Loc
 	 * @param locale locale
 	 * @return language code (e.g., zh_CN, en_US)
 	 */
-	private String getLangCode(Locale locale) {
+	private String getLang() {
+		return Locale.getDefault().getLanguage() + "_" + Locale.getDefault().getCountry();
+	}
+
+	/**
+	 * Get language code
+	 *
+	 * @param locale locale
+	 * @return language code (e.g., zh_CN, en_US)
+	 */
+	private String getLang(Locale locale) {
 		if (locale == null) {
-			return "zh_CN";
+			locale = Locale.getDefault();
 		}
 		return locale.getLanguage() + "_" + locale.getCountry();
 	}

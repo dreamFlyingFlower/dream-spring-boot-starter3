@@ -38,12 +38,12 @@ public class LocalizeVO extends AbstractTenantVO implements TransPojo {
 	@Schema(description = "国际化编码")
 	@NotBlank(message = "国际化编码不能为空", groups = ValidAdds.class)
 	@Size(max = 32, message = "国际化编码最大长度不能超过32", groups = { ValidAdd.class, ValidEdit.class })
-	private String messageCode;
+	private String localizeCode;
 
-	@Schema(description = "国际化信息内容")
-	@NotBlank(message = "国际化信息内容不能为空", groups = ValidAdds.class)
-	@Size(max = 256, message = "国际化信息内容最大长度不能超过256", groups = { ValidAdd.class, ValidEdit.class })
-	private String messageContent;
+	@Schema(description = "国际化信息")
+	@NotBlank(message = "国际化信息不能为空", groups = ValidAdds.class)
+	@Size(max = 256, message = "国际化信息最大长度不能超过256", groups = { ValidAdd.class, ValidEdit.class })
+	private String localizeMessage;
 
 	@Schema(description = "语言")
 	@NotBlank(message = "语言不能为空", groups = ValidAdds.class)

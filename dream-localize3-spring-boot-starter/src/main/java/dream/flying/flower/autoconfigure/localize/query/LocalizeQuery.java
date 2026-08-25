@@ -27,11 +27,11 @@ public class LocalizeQuery extends AbstractTenantQuery {
 
 	private static final long serialVersionUID = 1L;
 
-	@Schema(description = "消息编码")
-	private String messageCode;
+	@Schema(description = "国际化编码")
+	private String localizeCode;
 
-	@Schema(description = "消息内容")
-	private String messageContent;
+	@Schema(description = "国际化信息")
+	private String localizeMessage;
 
 	@Schema(description = "语言")
 	private String lang;

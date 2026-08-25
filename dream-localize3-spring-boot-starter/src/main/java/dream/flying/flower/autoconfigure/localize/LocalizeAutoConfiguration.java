@@ -74,6 +74,9 @@ public class LocalizeAutoConfiguration implements WebMvcConfigurer {
 		} else {
 			resolver.setDefaultLocale(Locale.SIMPLIFIED_CHINESE);
 		}
+
+		// AcceptHeaderLocaleResolver resolver = new AcceptHeaderLocaleResolver();
+		// resolver.setDefaultLocale(Locale.CHINA);
 		return resolver;
 	}
 
@@ -99,8 +102,8 @@ public class LocalizeAutoConfiguration implements WebMvcConfigurer {
 
 		@Override
 		public String getMessage(String code, Object[] args, String defaultMessage, Locale locale) {
-			String langCode = locale.getLanguage() + "_" + locale.getCountry();
-			String message = localizeService.getMessage(langCode, code);
+			String lang = locale.getLanguage() + "_" + locale.getCountry();
+			String message = localizeService.getMessage(code, lang);
 			return message != null ? message : (defaultMessage != null ? defaultMessage : code);
 		}
 
