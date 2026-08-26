@@ -9,9 +9,5 @@ package dream.flying.flower.autoconfigure.localize.constant;
  */
 public interface ConstLocalize {
 
-	String MODULE_NAME = "localization";
-
-	String I18N_CACHE_PREFIX = "i18n:message";
-
-	String I18N_ALL_CACHE_PREFIX = "i18n:all";
+	String MODULE_NAME = "localize";
 }

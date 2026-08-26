@@ -1,5 +1,8 @@
 package dream.flying.flower.autoconfigure.localize.properties;
 
+import java.time.Duration;
+
+import org.springframework.boot.autoconfigure.cache.CacheType;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 import dream.flying.flower.framework.constant.ConstConfig;
@@ -33,6 +36,27 @@ public class DreamLocalizeProperties {
 	private String defaultLocale = "zh_CN";
 
 	/**
+	 * Default namespace
+	 */
+	private String defaultNamespace = "default";
+
+	/**
+	 * Cache type.Currently, only caffeine and redis are supported. If you want to
+	 * support other types, please customize it
+	 */
+	private CacheType cacheType;
+
+	/**
+	 * Caffeine properties
+	 */
+	private CaffeineProperties caffeine = new CaffeineProperties();
+
+	/**
+	 * Cache prefix
+	 */
+	private String cachePrefix = "localize";
+
+	/**
 	 * Cache expire time in hours
 	 */
 	private long cacheExpireHours = 24;
@@ -56,4 +80,18 @@ public class DreamLocalizeProperties {
 	 * Document Api scan package
 	 */
 	private String apiPackageScan = ConstStarter.API_PACKAGE_SCAN;
+
+	@Data
+	public static class CaffeineProperties {
+
+		/**
+		 * Maximum cache size
+		 */
+		private long maxSize = 10000;
+
+		/**
+		 * Expiration time
+		 */
+		private Duration expireTime = Duration.ofHours(24);
+	}
 }

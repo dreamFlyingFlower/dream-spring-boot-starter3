@@ -11,7 +11,7 @@ import lombok.ToString;
 import lombok.experimental.SuperBuilder;
 
 /**
- * Localization entity class
+ * Language entity class
  *
  * @author 飞花梦影
  * @date 2026-04-13 13:49:19
@@ -23,30 +23,45 @@ import lombok.experimental.SuperBuilder;
 @SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
-@TableName("sys_localize")
-public class LocalizeEntity extends AbstractTenantEntity {
+@TableName("sys_language")
+public class LanguageEntity extends AbstractTenantEntity {
 
 	private static final long serialVersionUID = 1L;
 
 	/**
-	 * 国际化编码
+	 * 显示名称
 	 */
-	private String localizeCode;
+	private String displayName;
 
 	/**
-	 * 命名空间
+	 * 语言:zh,en...etc
 	 */
-	private String namespace;
+	private String lang;
 
 	/**
-	 * 数据类型:1-string;2-number;3-html;4-json;5-template
+	 * 区域脚本代码
 	 */
-	private Integer dataType;
+	private String script;
 
 	/**
-	 * 默认值
+	 * 国家/地区代码
 	 */
-	private String defaultValue;
+	private String country;
+
+	/**
+	 * 区域变体代码
+	 */
+	private String variant;
+
+	/**
+	 * 启用标志:0-未启用;1-启用
+	 */
+	private Integer enabled;
+
+	/**
+	 * 排序
+	 */
+	private Integer sortIndex;
 
 	/**
 	 * 备注

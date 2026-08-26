@@ -5,6 +5,7 @@ import java.util.Locale;
 import org.mybatis.spring.annotation.MapperScan;
 import org.springdoc.core.models.GroupedOpenApi;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.flyway.FlywayAutoConfiguration;
@@ -20,6 +21,12 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.web.servlet.i18n.LocaleChangeInterceptor;
 import org.springframework.web.servlet.i18n.SessionLocaleResolver;
 
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
+
+import dream.flying.flower.autoconfigure.localize.cache.CaffeineLocalizeCache;
+import dream.flying.flower.autoconfigure.localize.cache.LocalizeCache;
+import dream.flying.flower.autoconfigure.localize.cache.RedisLocalizeCache;
 import dream.flying.flower.autoconfigure.localize.convert.LocalizeConvert;
 import dream.flying.flower.autoconfigure.localize.endpoint.LocalizeEndpoint;
 import dream.flying.flower.autoconfigure.localize.properties.DreamLocalizeProperties;
@@ -29,6 +36,12 @@ import dream.flying.flower.framework.constant.ConstConfig;
 
 /**
  * I18n auto configuration class
+ * 
+ * <pre>
+ * Locale.getDefault().toString(): 历史本地化,返回的是zh_CN
+ * Locale.getDefault().toLanguageTag(): 国际化标准,返回的是zh-CN
+ * 在处理时,需要2种情况都考虑,进行兼容
+ * </pre>
  *
  * @author 飞花梦影
  * @date 2026-05-20 10:43:03
@@ -139,5 +152,39 @@ public class LocalizeAutoConfiguration implements WebMvcConfigurer {
 				// 扫描包路径
 				.packagesToScan(properties.getApiPackageScan())
 				.build();
+	}
+
+	////////////////////////////////////////////////////////////////
+
+	@Bean
+	@ConditionalOnMissingBean
+	@ConditionalOnClass(Caffeine.class)
+	Cache<String, String> caffeineCache(DreamLocalizeProperties properties) {
+		return Caffeine.newBuilder()
+				.maximumSize(properties.getCaffeine().getMaxSize())
+				.expireAfterWrite(properties.getCaffeine().getExpireTime())
+				.recordStats()
+				.build();
+	}
+
+	@Bean
+	@ConditionalOnMissingBean
+	LocalizeService i18nService(LocalizeCache localizeCache) {
+		return new LocalizeServiceImpl(localizeCache);
+	}
+
+	@Bean
+	@ConditionalOnMissingBean
+	@ConditionalOnProperty(name = "dream.auto.localize.cache-type", havingValue = "caffeine", matchIfMissing = true)
+	LocalizeCache caffeineLocalizeCache(Cache<String, String> caffeineCache) {
+		return new CaffeineLocalizeCache(caffeineCache);
+	}
+
+	@Bean
+	@ConditionalOnMissingBean
+	@ConditionalOnProperty(name = "dream.auto.localize.cache-type", havingValue = "redis")
+	@ConditionalOnClass(RedisTemplate.class)
+	LocalizeCache redisCache(RedisTemplate<String, String> redisTemplate, DreamLocalizeProperties properties) {
+		return new RedisLocalizeCache(redisTemplate, properties);
 	}
 }
