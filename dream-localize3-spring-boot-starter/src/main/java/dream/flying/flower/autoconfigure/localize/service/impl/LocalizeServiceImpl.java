@@ -9,12 +9,11 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.util.CollectionUtils;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 
+import dream.flying.flower.ConstSymbol;
 import dream.flying.flower.autoconfigure.localize.cache.LocalizeCache;
 import dream.flying.flower.autoconfigure.localize.constant.ConstLocalize;
 import dream.flying.flower.autoconfigure.localize.convert.LocalizeConvert;
@@ -49,11 +48,9 @@ public class LocalizeServiceImpl
 		extends AbstractServiceImpl<LocalizeEntity, LocalizeVO, LocalizeQuery, LocalizeConvert, LocalizeMapper>
 		implements LocalizeService {
 
-	private final LocalizeCache localizeCache;
-
 	private final DreamLocalizeProperties dreamLocalizeProperties;
 
-	private final RedisTemplate<String, String> redisTemplate;
+	private final LocalizeCache localizeCache;
 
 	private final LanguageMapper languageMapper;
 
@@ -61,14 +58,29 @@ public class LocalizeServiceImpl
 
 	private final LocalizeItemMapper localizeItemMapper;
 
+	/**
+	 * 解析完整的
+	 * @param localizeCode
+	 * @return
+	 */
+	private String parseCode(String localizeCode) {
+		int firstDot = localizeCode.indexOf(ConstSymbol.CHAR_DOT);
+		if (firstDot > 0) {
+			String namespace = localizeCode.substring(0, firstDot);
+			String key = localizeCode.substring(firstDot + 1);
+			return new String[] { namespace, key };
+		}
+		return new String[] { dreamLocalizeProperties.getDefaultNamespace(), localizeCode };
+	}
+
 	@Override
 	public String getMessage(String localizeCode) {
-		return getMessage(localizeCode, getLang());
+		return getMessage(localizeCode, LocalizeHelpers.getLang());
 	}
 
 	@Override
 	public String getMessage(String localizeCode, String lang) {
-		return getMessage(dreamLocalizeProperties.getDefaultNamespace(), localizeCode, lang);
+		return getMessage(localizeCode, lang, dreamLocalizeProperties.getDefaultNamespace());
 	}
 
 	@Override
@@ -102,17 +114,11 @@ public class LocalizeServiceImpl
 
 	@Override
 	public Map<String, String> getAllMessages(String lang) {
-		String cacheKey = ConstCache.buildRedisKey(ConstStarter.PROJECT_NAME, ConstLocalize.MODULE_NAME,
-				dreamLocalizeProperties.getCachePrefix(), lang);
+		String cacheKey = buildCacheKey(lang);
 
 		// Try to get from cache first
 		try {
-			Map<Object, Object> cachedMap = redisTemplate.opsForHash().entries(cacheKey);
-			if (!cachedMap.isEmpty()) {
-				return cachedMap.entrySet()
-						.stream()
-						.collect(Collectors.toMap(e -> e.getKey().toString(), e -> e.getValue().toString()));
-			}
+			return localizeCache.getMap(cacheKey);
 		} catch (Exception e) {
 			// Redis connection failed, query directly from database
 			e.printStackTrace();
@@ -140,26 +146,25 @@ public class LocalizeServiceImpl
 	}
 
 	@Override
-	public void clearCache(String lang) {
+	public void clearCache() {
 		try {
-			// Clear all message caches for this language
-			String pattern = ConstCache.buildRedisKey(ConstStarter.PROJECT_NAME, ConstLocalize.MODULE_NAME,
-					dreamLocalizeProperties.getCachePrefix(), lang, "*");
-			redisTemplate.delete(redisTemplate.keys(pattern));
+			localizeCache.clear();
 		} catch (Exception e) {
 			// Redis connection failed, ignore cache operation
 			e.printStackTrace();
 		}
 	}
 
-	/**
-	 * Clear all caches
-	 */
 	@Override
-	public void clearAllCache() {
+	public void evictCache(String lang) {
 		try {
-			redisTemplate.delete(redisTemplate.keys(ConstCache.buildRedisKey(ConstStarter.PROJECT_NAME,
-					ConstLocalize.MODULE_NAME, dreamLocalizeProperties.getCachePrefix(), "*")));
+			// Clear all message caches for this language
+			String pattern = ConstCache.buildRedisKey(ConstStarter.PROJECT_NAME, ConstLocalize.MODULE_NAME,
+					dreamLocalizeProperties.getCachePrefix(), lang, "*");
+			redisTemplate.delete(redisTemplate.keys(pattern));
+
+			localizeCache.evict(keys);
+
 		} catch (Exception e) {
 			// Redis connection failed, ignore cache operation
 			e.printStackTrace();
@@ -178,7 +183,7 @@ public class LocalizeServiceImpl
 		if (StrHelper.isBlank(localizeCode)) {
 			return null;
 		}
-		String lang = getLang(locale);
+		String lang = LocalizeHelpers.getLang(locale);
 		return getMessage(localizeCode, lang);
 	}
 
@@ -194,7 +199,7 @@ public class LocalizeServiceImpl
 		if (StrHelper.isBlank(localizeCode)) {
 			return null;
 		}
-		String lang = getLang(locale);
+		String lang = LocalizeHelpers.getLang(locale);
 		return getMessage(localizeCode, lang);
 	}
 
@@ -210,7 +215,7 @@ public class LocalizeServiceImpl
 		if (CollectionUtils.isEmpty(localizeCodes)) {
 			return Map.of();
 		}
-		String lang = getLang(locale);
+		String lang = LocalizeHelpers.getLang(locale);
 		return getAllMessages(lang).entrySet()
 				.stream()
 				.filter(entry -> localizeCodes.contains(entry.getKey()))
@@ -229,41 +234,18 @@ public class LocalizeServiceImpl
 		if (CollectionUtils.isEmpty(localizeCodes)) {
 			return Map.of();
 		}
-		String lang = getLang(locale);
+		String lang = LocalizeHelpers.getLang(locale);
 		return getAllMessages(lang).entrySet()
 				.stream()
 				.filter(entry -> localizeCodes.contains(entry.getKey()))
 				.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 	}
 
-	/**
-	 * Get language code
-	 *
-	 * @param locale locale
-	 * @return language code (e.g., zh-CN, en-US)
-	 */
-	private String getLang() {
-		return Locale.getDefault().toLanguageTag();
-	}
-
-	/**
-	 * Get language code
-	 *
-	 * @param locale locale
-	 * @return language code (e.g., zh-CN, en-US)
-	 */
-	private String getLang(Locale locale) {
-		if (locale == null) {
-			locale = Locale.getDefault();
-		}
-		return locale.toLanguageTag();
-	}
-
 	public Map<String, String> getTranslations(String namespace, List<String> keys, String languageTag) {
 		List<String> cacheKeys =
 				keys.stream().map(key -> buildCacheKey(namespace, key, languageTag)).collect(Collectors.toList());
 
-		Map<String, String> cached = localizeCache.getBatch(cacheKeys);
+		Map<String, String> cached = localizeCache.get(cacheKeys);
 		Map<String, String> result = new LinkedHashMap<>();
 		List<String> missKeys = new ArrayList<>();
 
@@ -285,7 +267,7 @@ public class LocalizeServiceImpl
 				cacheEntries.put(cacheKey, entry.getValue());
 			}
 			if (!cacheEntries.isEmpty()) {
-				localizeCache.putBatch(cacheEntries, 3600, TimeUnit.SECONDS);
+				localizeCache.put(cacheEntries, 3600, TimeUnit.SECONDS);
 			}
 			result.putAll(dbResult);
 		}
@@ -331,22 +313,25 @@ public class LocalizeServiceImpl
 		return resource.getDefaultValue() != null ? resource.getDefaultValue() : localizeCode;
 	}
 
-	private Map<String, String> getTranslationsFromDB(String namespace, List<String> keys, String languageTag) {
+	private Map<String, String> getTranslationsFromDB(String namespace, List<String> keys, String lang) {
 		Map<String, String> result = new LinkedHashMap<>();
 		for (String key : keys) {
-			result.put(key, getContent(namespace, key, languageTag));
+			result.put(key, getContent(namespace, key, lang));
 		}
 		return result;
 	}
 
-	private String buildCacheKey(String localizeCode, String lang) {
-		return buildCacheKey(dreamLocalizeProperties.getDefaultNamespace(), localizeCode, lang);
+	private String buildCacheKey(String lang) {
+		String formatLang = LocalizeHelpers.parse(lang).getLanguage();
+
+		return ConstCache.buildRedisKey(ConstStarter.PROJECT_NAME, ConstLocalize.MODULE_NAME,
+				dreamLocalizeProperties.getDefaultNamespace(), formatLang, "*");
 	}
 
 	private String buildCacheKey(String localizeCode, String lang, String namespace) {
-		String locale = LocalizeHelpers.parse(lang).getLanguage();
+		String formatLang = LocalizeHelpers.parse(lang).getLanguage();
 
-		return ConstCache.buildRedisKey(ConstStarter.PROJECT_NAME, ConstLocalize.MODULE_NAME,
-				dreamLocalizeProperties.getCachePrefix(), namespace, localizeCode, locale);
+		return ConstCache.buildRedisKey(ConstStarter.PROJECT_NAME, ConstLocalize.MODULE_NAME, namespace, formatLang,
+				localizeCode);
 	}
 }

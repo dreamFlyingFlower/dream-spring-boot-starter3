@@ -1,7 +1,5 @@
 package dream.flying.flower.autoconfigure.localize.properties;
 
-import java.time.Duration;
-
 import org.springframework.boot.autoconfigure.cache.CacheType;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
@@ -47,16 +45,6 @@ public class DreamLocalizeProperties {
 	private CacheType cacheType;
 
 	/**
-	 * Caffeine properties
-	 */
-	private CaffeineProperties caffeine = new CaffeineProperties();
-
-	/**
-	 * Cache prefix
-	 */
-	private String cachePrefix = "localize";
-
-	/**
 	 * Cache expire time in hours
 	 */
 	private long cacheExpireHours = 24;
@@ -80,18 +68,4 @@ public class DreamLocalizeProperties {
 	 * Document Api scan package
 	 */
 	private String apiPackageScan = ConstStarter.API_PACKAGE_SCAN;
-
-	@Data
-	public static class CaffeineProperties {
-
-		/**
-		 * Maximum cache size
-		 */
-		private long maxSize = 10000;
-
-		/**
-		 * Expiration time
-		 */
-		private Duration expireTime = Duration.ofHours(24);
-	}
 }

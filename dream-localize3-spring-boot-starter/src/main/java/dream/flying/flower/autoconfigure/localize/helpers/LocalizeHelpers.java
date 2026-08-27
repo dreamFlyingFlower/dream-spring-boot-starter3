@@ -18,6 +18,28 @@ import dream.flying.flower.lang.StrHelper;
 public class LocalizeHelpers {
 
 	/**
+	 * 获取本地国际标准Locale字符串
+	 *
+	 * @return language code (e.g., zh-CN, en-US)
+	 */
+	public static String getLang() {
+		return getLang(Locale.getDefault());
+	}
+
+	/**
+	 * 获取国际标准Locale字符串
+	 *
+	 * @param locale locale
+	 * @return language code (e.g., zh-CN, en-US)
+	 */
+	public static String getLang(Locale locale) {
+		if (locale == null) {
+			locale = Locale.getDefault();
+		}
+		return locale.toLanguageTag();
+	}
+
+	/**
 	 * 构建标准Locale对象
 	 * 
 	 * @param language 语言
@@ -74,7 +96,7 @@ public class LocalizeHelpers {
 	/**
 	 * 将Java格式的语言字符串转换为国际格式的字符串
 	 * 
-	 * @param language Java格式语言字符串,如zh_CN - > zh-CN
+	 * @param language Java格式语言字符串,如zh_CN -> zh-CN
 	 * @return 国际格式语言字符串
 	 */
 	public static Locale parse(String language) {

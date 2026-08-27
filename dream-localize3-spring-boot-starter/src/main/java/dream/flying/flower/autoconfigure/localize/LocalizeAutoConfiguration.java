@@ -21,14 +21,13 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.web.servlet.i18n.LocaleChangeInterceptor;
 import org.springframework.web.servlet.i18n.SessionLocaleResolver;
 
-import com.github.benmanes.caffeine.cache.Cache;
-import com.github.benmanes.caffeine.cache.Caffeine;
-
-import dream.flying.flower.autoconfigure.localize.cache.CaffeineLocalizeCache;
 import dream.flying.flower.autoconfigure.localize.cache.LocalizeCache;
 import dream.flying.flower.autoconfigure.localize.cache.RedisLocalizeCache;
 import dream.flying.flower.autoconfigure.localize.convert.LocalizeConvert;
 import dream.flying.flower.autoconfigure.localize.endpoint.LocalizeEndpoint;
+import dream.flying.flower.autoconfigure.localize.mapper.LanguageMapper;
+import dream.flying.flower.autoconfigure.localize.mapper.LocalizeItemMapper;
+import dream.flying.flower.autoconfigure.localize.mapper.LocalizeMapper;
 import dream.flying.flower.autoconfigure.localize.properties.DreamLocalizeProperties;
 import dream.flying.flower.autoconfigure.localize.service.LocalizeService;
 import dream.flying.flower.autoconfigure.localize.service.impl.LocalizeServiceImpl;
@@ -68,9 +67,10 @@ public class LocalizeAutoConfiguration implements WebMvcConfigurer {
 
 	@Bean
 	@ConditionalOnMissingBean(LocalizeService.class)
-	LocalizeService localizeService(RedisTemplate<String, String> redisTemplate,
-			DreamLocalizeProperties dreamLocalizeProperties) {
-		return new LocalizeServiceImpl(redisTemplate, dreamLocalizeProperties);
+	LocalizeService localizeService(DreamLocalizeProperties dreamLocalizeProperties, LocalizeCache localizeCache,
+			LanguageMapper languageMapper, LocalizeMapper localizeMapper, LocalizeItemMapper localizeItemMapper) {
+		return new LocalizeServiceImpl(dreamLocalizeProperties, localizeCache, languageMapper, localizeMapper,
+				localizeItemMapper);
 	}
 
 	@Bean
@@ -154,37 +154,11 @@ public class LocalizeAutoConfiguration implements WebMvcConfigurer {
 				.build();
 	}
 
-	////////////////////////////////////////////////////////////////
-
 	@Bean
 	@ConditionalOnMissingBean
-	@ConditionalOnClass(Caffeine.class)
-	Cache<String, String> caffeineCache(DreamLocalizeProperties properties) {
-		return Caffeine.newBuilder()
-				.maximumSize(properties.getCaffeine().getMaxSize())
-				.expireAfterWrite(properties.getCaffeine().getExpireTime())
-				.recordStats()
-				.build();
-	}
-
-	@Bean
-	@ConditionalOnMissingBean
-	LocalizeService i18nService(LocalizeCache localizeCache) {
-		return new LocalizeServiceImpl(localizeCache);
-	}
-
-	@Bean
-	@ConditionalOnMissingBean
-	@ConditionalOnProperty(name = "dream.auto.localize.cache-type", havingValue = "caffeine", matchIfMissing = true)
-	LocalizeCache caffeineLocalizeCache(Cache<String, String> caffeineCache) {
-		return new CaffeineLocalizeCache(caffeineCache);
-	}
-
-	@Bean
-	@ConditionalOnMissingBean
-	@ConditionalOnProperty(name = "dream.auto.localize.cache-type", havingValue = "redis")
+	@ConditionalOnProperty(name = "dream.auto.localize.cache-type", havingValue = "redis", matchIfMissing = true)
 	@ConditionalOnClass(RedisTemplate.class)
-	LocalizeCache redisCache(RedisTemplate<String, String> redisTemplate, DreamLocalizeProperties properties) {
-		return new RedisLocalizeCache(redisTemplate, properties);
+	LocalizeCache redisLocalizeCache(RedisTemplate<String, String> redisTemplate) {
+		return new RedisLocalizeCache(redisTemplate);
 	}
 }

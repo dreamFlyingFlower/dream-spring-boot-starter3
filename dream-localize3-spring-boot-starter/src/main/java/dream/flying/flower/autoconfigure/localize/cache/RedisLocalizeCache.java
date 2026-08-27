@@ -4,11 +4,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import org.springframework.data.redis.core.RedisTemplate;
 
 import dream.flying.flower.autoconfigure.localize.constant.ConstLocalize;
-import dream.flying.flower.autoconfigure.localize.properties.DreamLocalizeProperties;
 import dream.flying.flower.framework.constant.ConstCache;
 import dream.flying.flower.framework.constant.ConstStarter;
 import lombok.RequiredArgsConstructor;
@@ -25,15 +25,13 @@ public class RedisLocalizeCache implements LocalizeCache {
 
 	private final RedisTemplate<String, String> redisTemplate;
 
-	private final DreamLocalizeProperties properties;
-
 	@Override
 	public String get(String key) {
 		return redisTemplate.opsForValue().get(key);
 	}
 
 	@Override
-	public Map<String, String> getBatch(List<String> keys) {
+	public Map<String, String> get(List<String> keys) {
 		List<String> values = redisTemplate.opsForValue().multiGet(keys);
 		Map<String, String> result = new HashMap<>();
 		if (values != null) {
@@ -47,15 +45,38 @@ public class RedisLocalizeCache implements LocalizeCache {
 	}
 
 	@Override
+	public Map<String, String> getMap(String cacheKey) {
+		Map<Object, Object> entries = redisTemplate.opsForHash().entries(cacheKey);
+		if (!entries.isEmpty()) {
+			return entries.entrySet()
+					.stream()
+					.collect(Collectors.toMap(e -> null == e.getKey() ? null : e.getKey().toString(),
+							e -> null == e.getValue() ? null : e.getValue().toString(), (o, n) -> o));
+		}
+		return new HashMap<>();
+	}
+
+	@Override
+	public String getMap(String cacheKey, String hashKey) {
+		Object value = redisTemplate.opsForHash().get(cacheKey, hashKey);
+		return null == value ? null : value.toString();
+	}
+
+	@Override
 	public void put(String key, String value, long ttl, TimeUnit unit) {
 		redisTemplate.opsForValue().set(key, value, ttl, unit);
 	}
 
 	@Override
-	public void putBatch(Map<String, String> entries, long ttl, TimeUnit unit) {
+	public void put(Map<String, String> entries, long ttl, TimeUnit unit) {
 		for (Map.Entry<String, String> entry : entries.entrySet()) {
 			redisTemplate.opsForValue().set(entry.getKey(), entry.getValue(), ttl, unit);
 		}
+	}
+
+	@Override
+	public void putMap(String key, Map<String, String> map, long ttl, TimeUnit unit) {
+		redisTemplate.opsForHash().putAll(key, map);
 	}
 
 	@Override
@@ -64,8 +85,32 @@ public class RedisLocalizeCache implements LocalizeCache {
 	}
 
 	@Override
+	public void evict(List<String> keys) {
+		redisTemplate.delete(keys);
+	}
+
+	@Override
+	public void evictPattern(String pattern) {
+		redisTemplate.delete(redisTemplate.keys(pattern));
+	}
+
+	@Override
+	public void evictLang(String namespace, String lang) {
+		String mapKey = buildMapKey(namespace, languageTag);
+		redisTemplate.delete(mapKey);
+		log.debug("Map cache evicted for namespace: {}, language: {}", namespace, languageTag);
+	}
+
+	@Override
+	public void evictNamespace(String namespace, String lang) {
+		String mapKey = buildMapKey(namespace, languageTag);
+		redisTemplate.delete(mapKey);
+		log.debug("Map cache evicted for namespace: {}, language: {}", namespace, languageTag);
+	}
+
+	@Override
 	public void clear() {
-		redisTemplate.delete(redisTemplate.keys(ConstCache.buildRedisKey(ConstStarter.PROJECT_NAME,
-				ConstLocalize.MODULE_NAME, properties.getCachePrefix(), "*")));
+		redisTemplate.delete(redisTemplate
+				.keys(ConstCache.buildRedisKey(ConstStarter.PROJECT_NAME, ConstLocalize.MODULE_NAME, "*")));
 	}
 }

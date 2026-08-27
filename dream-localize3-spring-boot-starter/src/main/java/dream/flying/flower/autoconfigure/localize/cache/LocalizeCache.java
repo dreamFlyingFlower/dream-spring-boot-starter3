@@ -15,13 +15,27 @@ public interface LocalizeCache {
 
 	String get(String key);
 
-	Map<String, String> getBatch(List<String> keys);
+	Map<String, String> get(List<String> keys);
+
+	Map<String, String> getMap(String cacheKey);
+
+	String getMap(String cacheKey, String hashKey);
 
 	void put(String key, String value, long ttl, TimeUnit unit);
 
-	void putBatch(Map<String, String> entries, long ttl, TimeUnit unit);
+	void put(Map<String, String> entries, long ttl, TimeUnit unit);
+
+	void putMap(String key, Map<String, String> map, long ttl, TimeUnit unit);
 
 	void evict(String key);
+
+	void evict(List<String> keys);
+
+	void evictPattern(String pattern);
+
+	void evictLang(String namespace, String lang);
+
+	void evictNamespace(String namespace, String lang);
 
 	void clear();
 }
