@@ -1,5 +1,6 @@
 package dream.flying.flower.autoconfigure.localize.cache;
 
+import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -21,9 +22,15 @@ public interface LocalizeCache {
 
 	String getMap(String cacheKey, String hashKey);
 
+	void put(String key, String value, Duration duration);
+
 	void put(String key, String value, long ttl, TimeUnit unit);
 
+	void put(Map<String, String> entries, Duration duration);
+
 	void put(Map<String, String> entries, long ttl, TimeUnit unit);
+
+	void putMap(String key, Map<String, String> map, Duration duration);
 
 	void putMap(String key, Map<String, String> map, long ttl, TimeUnit unit);
 
@@ -31,11 +38,9 @@ public interface LocalizeCache {
 
 	void evict(List<String> keys);
 
+	void evictMap(String cacheKey, List<String> hashKeys);
+
 	void evictPattern(String pattern);
-
-	void evictLang(String namespace, String lang);
-
-	void evictNamespace(String namespace, String lang);
 
 	void clear();
 }

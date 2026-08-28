@@ -121,23 +121,15 @@ public class LocalizeHelpers {
 		String variant = locale.getVariant();
 
 		chain.add(toStandard(lang, script, country, variant));
-		chain.add(toJavaFormat(lang, script, country, variant));
 
 		if (!variant.isEmpty()) {
-			chain.add(toStandard(lang, script, country, ""));
-			chain.add(toJavaFormat(lang, script, country, ""));
+			chain.add(toStandard(lang, script, country, null));
 		}
 		if (!country.isEmpty()) {
+			chain.add(toStandard(lang, null, country, null));
 			if (!script.isEmpty()) {
-				chain.add(toStandard(lang, script, "", ""));
-				chain.add(toJavaFormat(lang, script, "", ""));
+				chain.add(toStandard(lang, script, null, null));
 			}
-			chain.add(toStandard(lang, "", country, ""));
-			chain.add(toJavaFormat(lang, "", country, ""));
-		}
-		if (!script.isEmpty()) {
-			chain.add(toStandard(lang, "", "", ""));
-			chain.add(toJavaFormat(lang, "", "", ""));
 		}
 		chain.add(lang);
 

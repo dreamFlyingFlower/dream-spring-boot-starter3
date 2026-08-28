@@ -2,6 +2,7 @@ package dream.flying.flower.autoconfigure.localize.entity;
 
 import com.baomidou.mybatisplus.annotation.TableName;
 
+import dream.flying.flower.framework.constant.enums.DataType;
 import dream.flying.flower.framework.mybatis.plus.entity.AbstractTenantEntity;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -34,19 +35,24 @@ public class LocalizeEntity extends AbstractTenantEntity {
 	private String localizeCode;
 
 	/**
-	 * 命名空间
+	 * 语言ID
 	 */
-	private String namespace;
+	private Long languageId;
 
 	/**
-	 * 数据类型:1-string;2-number;3-html;4-json;5-template
+	 * 标准语言代码
+	 */
+	private String fullLang;
+
+	/**
+	 * 内容
+	 */
+	private String content;
+
+	/**
+	 * 数据类型,见{@link DataType}
 	 */
 	private Integer dataType;
-
-	/**
-	 * 默认值
-	 */
-	private String defaultValue;
 
 	/**
 	 * 备注

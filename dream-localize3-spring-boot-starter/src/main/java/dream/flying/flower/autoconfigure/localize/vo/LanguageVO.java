@@ -60,6 +60,10 @@ public class LanguageVO extends AbstractTenantVO implements TransPojo {
 	@Size(max = 8, message = "区域变体代码长度不能超过 8 个字符", groups = { ValidAdds.class, ValidEdits.class })
 	private String variant;
 
+	@Schema(description = "标准语言代码")
+	@Size(max = 32, message = "标准语言代码长度不能超过 32 个字符", groups = { ValidAdds.class, ValidEdits.class })
+	private String fullLang;
+
 	@Schema(description = "启用标志:0-未启用;1-启用")
 	@Range(min = 0, max = 1)
 	private Integer enabled;

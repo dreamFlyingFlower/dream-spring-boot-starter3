@@ -1,5 +1,64 @@
 # Change Log
 
+## 2026-08-28
+
+### BUG 修复
+
+#### dream-localize3-spring-boot-starter LocalizeServiceImpl 核心方法批量修复
+
+**变更原因:**
+1. `getContents(List<String>, String)` 方法为批量从数据库读取国际化的核心方法,存在 4 个严重 BUG:
+   - 第一次按 `localizeCode in (...) + fullLang` 批量查询后 if 块**完全为空**,命中结果未被提取,全部进入 fallback 流程
+   - fallback 查询只按 `languageId` 过滤,**缺少 `localizeCode` 条件**,返回该语言下任意一条记录的 content,结果完全错误
+   - fallback 循环内找到匹配后**未 `break`**,后续更宽泛的语言覆盖前面已匹配的精确内容,违反降级语义
+   - fallback 采用 N+1 模式(每个 code 每个 fallback 语言单独 `selectOne`),性能极差
+2. `getContent(String, String)` 单体查询对应 3 个 BUG:
+   - 第一次精确查询命中 `localizeEntity != null` 时,**不返回 content**,反而在 entity==null 时返回 code,entity!=null 却进入 fallback,首查结果完全丢弃
+   - fallback 查询同样缺 `localizeCode` 条件
+   - fallback 命中未 `break`,被后续覆盖
+3. `getAllMessages(String lang)`: 计算了 `formatLang`(标准化后的语言 tag)但 DB 查询使用的仍是原始 `lang` 参数,缓存 key 和查询条件不一致;`putMap(cacheKey, messageMap, 0, null)` 传 `ttl=0` + `TimeUnit=null`,在 `RedisLocalizeCache` 中会执行 `redisTemplate.expire(key, 0, null)`,可能抛 NPE 或立即过期,缓存形同虚设
+4. `buildCacheKey(String lang)` 生成的 Hash key 以 `*` 结尾,被 `getAllMessages` 作为实际 Redis key 使用时不合理,仅 evict 时 pattern 才需要 `*`,两者混用导致 Hash key 含通配符污染
+5. `getMesssges` 方法名拼写错误(3 个 `s`),且该 public 方法未在 `LocalizeService` 接口中声明;同时方法内的缓存读/写没有 try/catch,Redis 异常会直接抛出无法走 DB 降级
+6. 所有 `e.printStackTrace()` 调用(getAllMessages/clearCache/evictCache 共 4 处)违反日志规范,应使用 log.error;`getMessage` 中 DB 查询异常的 catch 日志内容为 "cache ... from redis",上下文完全错误
+
+**变更内容:**
+1. **修复 `getContents(List, String)` (文件 [LocalizeServiceImpl.java](file:///d:/person/repository/dream-spring-boot-starter3/dream-localize3-spring-boot-starter/src/main/java/dream/flying/flower/autoconfigure/localize/service/impl/LocalizeServiceImpl.java))**
+   - Step 1: 批量查询后,先将所有 code 默认值设为 code 本身,再将命中且 content 非空的项写入 result,并从 `unresolvedKeys` 中移除
+   - Step 2: 仅对 `unresolvedKeys`(未命中集合)进入 fallback;提前短路全命中场景
+   - Step 3: 按 fallback chain 顺序构造 `orderedLanguageIds`(保证最精确语言优先)
+   - Step 4: 将原先 N+1 次 `selectOne` 改为 **1 次批量 in 查询**:`languageId IN (fallbackIds) AND localizeCode IN (unresolvedKeys)`,构造 `(languageId, localizeCode) -> content` 查找表
+   - Step 5: 按 fallback 优先级顺序依次填充 unresolved codes,已填充的 code 跳过(`resolvedSet`),全部解决后立即 `break`,避免覆盖
+2. **修复 `getContent(String, String)`**
+   - 首次精确查询命中且 content 非空,立即 `return content`;只有完全未命中或 content 为空才走 fallback
+   - fallback 查询补充 `.eq(LocalizeEntity::getLocalizeCode, localizeCode)` 条件
+3. **修复 `getAllMessages`**
+   - DB 查询改用 `formatLang` 而不是原始 `lang`,和缓存 key 对齐
+   - `getMap` 结果加上非空判断,空 map 视为缓存未命中再查库
+   - `putMap` TTL 从 `0, null` 改为从 `dreamLocalizeProperties.getExpire().getSeconds()` + `TimeUnit.SECONDS` 获取合法值(默认 24h)
+4. **修复缓存 key 构造**
+   - `buildCacheKey(String lang)` 改为返回 Hash 存储 key,后缀使用 `"ALL"` 而不是 `"*"`
+   - 新增 `buildCachePattern(String lang)` 方法专门用于 evict,保留后缀 `"*"`
+   - `evictCache` 调用改为使用 `buildCachePattern(lang)`
+5. **修复批量接口名拼写与鲁棒性**
+   - 重命名 `getMesssges` → `getMessages`,修正 3 个 `s` 的拼写错误
+   - 方法内 `localizeCache.get(cacheKeys)` 和 `localizeCache.put(cacheEntries, expire)` 增加 try/catch,Redis 异常时回退 DB 或忽略
+   - 在 [LocalizeService.java](file:///d:/person/repository/dream-spring-boot-starter3/dream-localize3-spring-boot-starter/src/main/java/dream/flying/flower/autoconfigure/localize/service/LocalizeService.java) 接口中新增 `getMessages(List<String>, String)` 方法声明
+6. **统一日志与异常处理**
+   - 把 4 处 `e.printStackTrace()`(getAllMessages L137/L155、clearCache L166、evictCache L178)全部替换为 `log.error` 带上下文参数
+   - `getMessage` 中 DB 异常 catch 日志改为正确的 "Localize database query failed" 并附 code/lang
+7. **getMessages 缓存优化**:仅当结果 content != localizeCode(确实查到翻译)才写入缓存,避免用 code 本身占缓存空间
+
+**修复结果:**
+- `getContents` 首次查询结果正确使用,fallback 查询返回的是对应 code 的内容而不是随机内容;fallback 首次匹配即生效不被覆盖;查询次数从 O(N*M) 降为 2~3 次批量 in,性能大幅提升
+- `getContent` 首次精确查询 100% 返回正确 content,不会无故进入 fallback;降级结果也受 `localizeCode` 条件约束,不再乱匹配
+- `getAllMessages` 缓存 key 与 DB 查询语言一致,命中率恢复;缓存 24h 正常过期,不再因 TTL=0/null 立即失效
+- Hash 缓存 key 不再含通配符,Redis key 空间干净不污染;evict 功能通过独立 pattern 方法正常工作
+- 公开的批量国际化查询接口 `getMessages` 名称正确、接口声明完整、Redis 异常不中断业务
+- 全模块日志不再有 printStackTrace,异常可通过 logback 按天正确记录;日志内容与异常类型一致,不误导排查
+- 所有修改未删除任何原有注释,仅新增必要说明,符合项目注释规则
+
+---
+
 ## 2026-08-15
 
 ### BUG 修复

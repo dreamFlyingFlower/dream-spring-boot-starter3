@@ -1,5 +1,6 @@
 package dream.flying.flower.autoconfigure.localize.cache;
 
+import java.time.Duration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -12,6 +13,7 @@ import dream.flying.flower.autoconfigure.localize.constant.ConstLocalize;
 import dream.flying.flower.framework.constant.ConstCache;
 import dream.flying.flower.framework.constant.ConstStarter;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Redis cache implement
@@ -20,6 +22,7 @@ import lombok.RequiredArgsConstructor;
  * @date 2026-08-26 14:44:33
  * @git {@link https://github.com/dreamFlyingFlower}
  */
+@Slf4j
 @RequiredArgsConstructor
 public class RedisLocalizeCache implements LocalizeCache {
 
@@ -63,8 +66,20 @@ public class RedisLocalizeCache implements LocalizeCache {
 	}
 
 	@Override
+	public void put(String key, String value, Duration duration) {
+		redisTemplate.opsForValue().set(key, value, duration);
+	}
+
+	@Override
 	public void put(String key, String value, long ttl, TimeUnit unit) {
 		redisTemplate.opsForValue().set(key, value, ttl, unit);
+	}
+
+	@Override
+	public void put(Map<String, String> entries, Duration duration) {
+		for (Map.Entry<String, String> entry : entries.entrySet()) {
+			redisTemplate.opsForValue().set(entry.getKey(), entry.getValue(), duration);
+		}
 	}
 
 	@Override
@@ -75,8 +90,15 @@ public class RedisLocalizeCache implements LocalizeCache {
 	}
 
 	@Override
+	public void putMap(String key, Map<String, String> map, Duration duration) {
+		redisTemplate.opsForHash().putAll(key, map);
+		redisTemplate.expire(key, duration);
+	}
+
+	@Override
 	public void putMap(String key, Map<String, String> map, long ttl, TimeUnit unit) {
 		redisTemplate.opsForHash().putAll(key, map);
+		redisTemplate.expire(key, ttl, unit);
 	}
 
 	@Override
@@ -90,22 +112,13 @@ public class RedisLocalizeCache implements LocalizeCache {
 	}
 
 	@Override
+	public void evictMap(String cacheKey, List<String> hashKeys) {
+		redisTemplate.opsForHash().delete(cacheKey, hashKeys);
+	}
+
+	@Override
 	public void evictPattern(String pattern) {
 		redisTemplate.delete(redisTemplate.keys(pattern));
-	}
-
-	@Override
-	public void evictLang(String namespace, String lang) {
-		String mapKey = buildMapKey(namespace, languageTag);
-		redisTemplate.delete(mapKey);
-		log.debug("Map cache evicted for namespace: {}, language: {}", namespace, languageTag);
-	}
-
-	@Override
-	public void evictNamespace(String namespace, String lang) {
-		String mapKey = buildMapKey(namespace, languageTag);
-		redisTemplate.delete(mapKey);
-		log.debug("Map cache evicted for namespace: {}, language: {}", namespace, languageTag);
 	}
 
 	@Override

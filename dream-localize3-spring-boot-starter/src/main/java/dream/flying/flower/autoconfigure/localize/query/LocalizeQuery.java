@@ -1,5 +1,6 @@
 package dream.flying.flower.autoconfigure.localize.query;
 
+import dream.flying.flower.db.annotation.Query;
 import dream.flying.flower.framework.web.query.AbstractTenantQuery;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
@@ -28,23 +29,26 @@ public class LocalizeQuery extends AbstractTenantQuery {
 	private static final long serialVersionUID = 1L;
 
 	@Schema(description = "国际化编码")
+	@Query
 	private String localizeCode;
 
+	@Schema(description = "语言ID")
+	@Query
+	private Long languageId;
+
+	@Schema(description = "标准语言代码")
+	@Query
+	private String fullLang;
+
 	@Schema(description = "国际化信息")
-	private String localizeMessage;
+	@Query
+	private String content;
 
-	@Schema(description = "语言")
-	private String lang;
-
-	@Schema(description = "国家/地区")
-	private String country;
-
-	@Schema(description = "区域脚本")
-	private String script;
-
-	@Schema(description = "区域变体代码")
-	private String variant;
+	@Schema(description = "数据类型")
+	@Query
+	private Integer dataType;
 
 	@Schema(description = "备注")
+	@Query
 	private String remark;
 }

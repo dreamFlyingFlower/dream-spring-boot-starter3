@@ -26,8 +26,6 @@ import dream.flying.flower.autoconfigure.localize.cache.RedisLocalizeCache;
 import dream.flying.flower.autoconfigure.localize.convert.LocalizeConvert;
 import dream.flying.flower.autoconfigure.localize.endpoint.LocalizeEndpoint;
 import dream.flying.flower.autoconfigure.localize.mapper.LanguageMapper;
-import dream.flying.flower.autoconfigure.localize.mapper.LocalizeItemMapper;
-import dream.flying.flower.autoconfigure.localize.mapper.LocalizeMapper;
 import dream.flying.flower.autoconfigure.localize.properties.DreamLocalizeProperties;
 import dream.flying.flower.autoconfigure.localize.service.LocalizeService;
 import dream.flying.flower.autoconfigure.localize.service.impl.LocalizeServiceImpl;
@@ -67,10 +65,9 @@ public class LocalizeAutoConfiguration implements WebMvcConfigurer {
 
 	@Bean
 	@ConditionalOnMissingBean(LocalizeService.class)
-	LocalizeService localizeService(DreamLocalizeProperties dreamLocalizeProperties, LocalizeCache localizeCache,
-			LanguageMapper languageMapper, LocalizeMapper localizeMapper, LocalizeItemMapper localizeItemMapper) {
-		return new LocalizeServiceImpl(dreamLocalizeProperties, localizeCache, languageMapper, localizeMapper,
-				localizeItemMapper);
+	LocalizeService localizeService(LocalizeCache localizeCache, LanguageMapper languageMapper,
+			DreamLocalizeProperties dreamLocalizeProperties) {
+		return new LocalizeServiceImpl(localizeCache, languageMapper, dreamLocalizeProperties);
 	}
 
 	@Bean
@@ -156,7 +153,6 @@ public class LocalizeAutoConfiguration implements WebMvcConfigurer {
 
 	@Bean
 	@ConditionalOnMissingBean
-	@ConditionalOnProperty(name = "dream.auto.localize.cache-type", havingValue = "redis", matchIfMissing = true)
 	@ConditionalOnClass(RedisTemplate.class)
 	LocalizeCache redisLocalizeCache(RedisTemplate<String, String> redisTemplate) {
 		return new RedisLocalizeCache(redisTemplate);

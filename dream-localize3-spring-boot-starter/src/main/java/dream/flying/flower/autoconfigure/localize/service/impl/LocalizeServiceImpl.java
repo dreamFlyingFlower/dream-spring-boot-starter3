@@ -2,32 +2,32 @@ package dream.flying.flower.autoconfigure.localize.service.impl;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
+import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.springframework.util.CollectionUtils;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 
-import dream.flying.flower.ConstSymbol;
 import dream.flying.flower.autoconfigure.localize.cache.LocalizeCache;
 import dream.flying.flower.autoconfigure.localize.constant.ConstLocalize;
 import dream.flying.flower.autoconfigure.localize.convert.LocalizeConvert;
 import dream.flying.flower.autoconfigure.localize.entity.LanguageEntity;
 import dream.flying.flower.autoconfigure.localize.entity.LocalizeEntity;
-import dream.flying.flower.autoconfigure.localize.entity.LocalizeItemEntity;
 import dream.flying.flower.autoconfigure.localize.helpers.LocalizeHelpers;
 import dream.flying.flower.autoconfigure.localize.mapper.LanguageMapper;
-import dream.flying.flower.autoconfigure.localize.mapper.LocalizeItemMapper;
 import dream.flying.flower.autoconfigure.localize.mapper.LocalizeMapper;
 import dream.flying.flower.autoconfigure.localize.properties.DreamLocalizeProperties;
 import dream.flying.flower.autoconfigure.localize.query.LocalizeQuery;
 import dream.flying.flower.autoconfigure.localize.service.LocalizeService;
 import dream.flying.flower.autoconfigure.localize.vo.LocalizeVO;
+import dream.flying.flower.collection.ListHelper;
 import dream.flying.flower.framework.constant.ConstCache;
 import dream.flying.flower.framework.constant.ConstStarter;
 import dream.flying.flower.framework.mybatis.plus.service.impl.AbstractServiceImpl;
@@ -48,30 +48,11 @@ public class LocalizeServiceImpl
 		extends AbstractServiceImpl<LocalizeEntity, LocalizeVO, LocalizeQuery, LocalizeConvert, LocalizeMapper>
 		implements LocalizeService {
 
-	private final DreamLocalizeProperties dreamLocalizeProperties;
-
 	private final LocalizeCache localizeCache;
 
 	private final LanguageMapper languageMapper;
 
-	private final LocalizeMapper localizeMapper;
-
-	private final LocalizeItemMapper localizeItemMapper;
-
-	/**
-	 * 解析完整的
-	 * @param localizeCode
-	 * @return
-	 */
-	private String parseCode(String localizeCode) {
-		int firstDot = localizeCode.indexOf(ConstSymbol.CHAR_DOT);
-		if (firstDot > 0) {
-			String namespace = localizeCode.substring(0, firstDot);
-			String key = localizeCode.substring(firstDot + 1);
-			return new String[] { namespace, key };
-		}
-		return new String[] { dreamLocalizeProperties.getDefaultNamespace(), localizeCode };
-	}
+	private final DreamLocalizeProperties dreamLocalizeProperties;
 
 	@Override
 	public String getMessage(String localizeCode) {
@@ -80,13 +61,8 @@ public class LocalizeServiceImpl
 
 	@Override
 	public String getMessage(String localizeCode, String lang) {
-		return getMessage(localizeCode, lang, dreamLocalizeProperties.getDefaultNamespace());
-	}
-
-	@Override
-	public String getMessage(String localizeCode, String lang, String namespace) {
-		String cacheKey = buildCacheKey(localizeCode, lang, namespace);
-
+		String formatLang = LocalizeHelpers.parse(lang).toLanguageTag();
+		String cacheKey = buildCacheKey(formatLang, localizeCode);
 		// Try to get from cache first
 		try {
 			String cached = localizeCache.get(cacheKey);
@@ -95,51 +71,90 @@ public class LocalizeServiceImpl
 			}
 		} catch (Exception e) {
 			// Redis connection failed, query directly from database
-			log.info("Localize cache does not exist or query failed from redis,retrieving from databse");
+			log.info("Localize cache query failed from redis, retrieving from database");
 		}
 
 		// Query from database
 		try {
-			String result = getContent(namespace, localizeCode, lang);
+			String result = getContent(localizeCode, formatLang);
 			if (result != null) {
-				localizeCache.put(cacheKey, result, 3600, TimeUnit.SECONDS);
+				localizeCache.put(cacheKey, result, dreamLocalizeProperties.getExpire());
 			}
 			return result;
 		} catch (Exception e) {
-			// Redis connection failed, query directly from database
-			log.info("Localize cache does not exist or query failed from redis,retrieving from databse");
+			// Database query failed
+			log.error("Localize database query failed for code: {}, lang: {}", localizeCode, formatLang, e);
 		}
-		return null;
+		return localizeCode;
+	}
+
+	private String getContent(String localizeCode, String lang) {
+		LocalizeEntity localizeEntity =
+				getOne(new LambdaQueryWrapper<LocalizeEntity>().eq(LocalizeEntity::getLocalizeCode, localizeCode)
+						.eq(LocalizeEntity::getFullLang, lang));
+
+		// Direct match with non-empty content, return immediately
+		if (localizeEntity != null && StrHelper.isNotBlank(localizeEntity.getContent())) {
+			return localizeEntity.getContent();
+		}
+
+		// Fallback processing
+		List<String> fallbackChain = LocalizeHelpers.buildFallback(lang);
+
+		List<LanguageEntity> tags = languageMapper
+				.selectList(new LambdaQueryWrapper<LanguageEntity>().in(LanguageEntity::getFullLang, fallbackChain));
+
+		Map<String, LanguageEntity> fullLang2Language =
+				tags.stream().collect(Collectors.toMap(LanguageEntity::getFullLang, Function.identity()));
+
+		for (String languageTag : fallbackChain) {
+			LanguageEntity matchedTag = fullLang2Language.get(languageTag);
+			if (matchedTag != null) {
+				LocalizeEntity item = baseMapper.selectOne(
+						new LambdaQueryWrapper<LocalizeEntity>().eq(LocalizeEntity::getLanguageId, matchedTag.getId())
+								.eq(LocalizeEntity::getLocalizeCode, localizeCode));
+				if (null != item && StrHelper.isNotBlank(item.getContent())) {
+					return item.getContent();
+				}
+			}
+		}
+
+		return localizeCode;
 	}
 
 	@Override
 	public Map<String, String> getAllMessages(String lang) {
-		String cacheKey = buildCacheKey(lang);
+		String formatLang = LocalizeHelpers.parse(lang).toLanguageTag();
+
+		String cacheKey = buildCacheKey(formatLang);
 
 		// Try to get from cache first
 		try {
-			return localizeCache.getMap(cacheKey);
+			Map<String, String> cachedMap = localizeCache.getMap(cacheKey);
+			if (cachedMap != null && !cachedMap.isEmpty()) {
+				return cachedMap;
+			}
 		} catch (Exception e) {
 			// Redis connection failed, query directly from database
-			e.printStackTrace();
+			log.error("Localize getAllMessages cache query failed for lang: {}", formatLang, e);
 		}
 
-		// Query from database
-		List<LocalizeEntity> messages = list(new LambdaQueryWrapper<LocalizeEntity>().eq(LocalizeEntity::getLang, lang)
-				.eq(LocalizeEntity::getDeleted, 0));
+		// Query from database using standardized lang
+		List<LocalizeEntity> messages =
+				list(new LambdaQueryWrapper<LocalizeEntity>().eq(LocalizeEntity::getFullLang, formatLang)
+						.eq(LocalizeEntity::getDeleted, 0));
 
 		Map<String, String> messageMap = messages.stream()
-				.collect(Collectors.toMap(LocalizeEntity::getLocalizeCode, LocalizeEntity::getLocalizeMessage));
+				.collect(Collectors.toMap(LocalizeEntity::getLocalizeCode, LocalizeEntity::getContent));
 
-		// Put into cache
+		// Put into cache with valid TTL
 		try {
 			if (!messageMap.isEmpty()) {
-				redisTemplate.opsForHash().putAll(cacheKey, messageMap);
-				redisTemplate.expire(cacheKey, dreamLocalizeProperties.getCacheExpireHours(), TimeUnit.HOURS);
+				localizeCache.putMap(cacheKey, messageMap, dreamLocalizeProperties.getExpire());
 			}
 		} catch (Exception e) {
 			// Redis connection failed, ignore cache operation
-			e.printStackTrace();
+			log.error("Localize getAllMessages cache put failed for lang: {}", formatLang, e);
 		}
 
 		return messageMap;
@@ -151,7 +166,7 @@ public class LocalizeServiceImpl
 			localizeCache.clear();
 		} catch (Exception e) {
 			// Redis connection failed, ignore cache operation
-			e.printStackTrace();
+			log.error("Localize clearCache failed", e);
 		}
 	}
 
@@ -159,15 +174,10 @@ public class LocalizeServiceImpl
 	public void evictCache(String lang) {
 		try {
 			// Clear all message caches for this language
-			String pattern = ConstCache.buildRedisKey(ConstStarter.PROJECT_NAME, ConstLocalize.MODULE_NAME,
-					dreamLocalizeProperties.getCachePrefix(), lang, "*");
-			redisTemplate.delete(redisTemplate.keys(pattern));
-
-			localizeCache.evict(keys);
-
+			localizeCache.evictPattern(buildCacheKey(lang));
 		} catch (Exception e) {
 			// Redis connection failed, ignore cache operation
-			e.printStackTrace();
+			log.error("Localize evictCache failed for lang: {}", lang, e);
 		}
 	}
 
@@ -241,16 +251,26 @@ public class LocalizeServiceImpl
 				.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 	}
 
-	public Map<String, String> getTranslations(String namespace, List<String> keys, String languageTag) {
+	@Override
+	public Map<String, String> getMessages(List<String> localizeCodes, String lang) {
+		if (CollectionUtils.isEmpty(localizeCodes)) {
+			return Map.of();
+		}
+		String formatLang = LocalizeHelpers.parse(lang).toLanguageTag();
 		List<String> cacheKeys =
-				keys.stream().map(key -> buildCacheKey(namespace, key, languageTag)).collect(Collectors.toList());
+				localizeCodes.stream().map(key -> buildCacheKey(formatLang, key)).collect(Collectors.toList());
 
-		Map<String, String> cached = localizeCache.get(cacheKeys);
+		Map<String, String> cached = new HashMap<>();
+		try {
+			cached = localizeCache.get(cacheKeys);
+		} catch (Exception e) {
+			log.info("Localize getMessages cache query failed from redis, retrieving from database");
+		}
 		Map<String, String> result = new LinkedHashMap<>();
 		List<String> missKeys = new ArrayList<>();
 
-		for (int i = 0; i < keys.size(); i++) {
-			String key = keys.get(i);
+		for (int i = 0; i < localizeCodes.size(); i++) {
+			String key = localizeCodes.get(i);
 			String cacheKey = cacheKeys.get(i);
 			if (cached.containsKey(cacheKey)) {
 				result.put(key, cached.get(cacheKey));
@@ -260,14 +280,21 @@ public class LocalizeServiceImpl
 		}
 
 		if (!missKeys.isEmpty()) {
-			Map<String, String> dbResult = getTranslationsFromDB(namespace, missKeys, languageTag);
+			Map<String, String> dbResult = getContents(missKeys, formatLang);
 			Map<String, String> cacheEntries = new HashMap<>();
 			for (Map.Entry<String, String> entry : dbResult.entrySet()) {
-				String cacheKey = buildCacheKey(namespace, entry.getKey(), languageTag);
-				cacheEntries.put(cacheKey, entry.getValue());
+				// Only cache results that differ from the code itself (i.e., real translations)
+				if (!entry.getKey().equals(entry.getValue())) {
+					String cacheKey = buildCacheKey(formatLang, entry.getKey());
+					cacheEntries.put(cacheKey, entry.getValue());
+				}
 			}
 			if (!cacheEntries.isEmpty()) {
-				localizeCache.put(cacheEntries, 3600, TimeUnit.SECONDS);
+				try {
+					localizeCache.put(cacheEntries, dreamLocalizeProperties.getExpire());
+				} catch (Exception e) {
+					log.error("Localize getMessages cache put failed for lang: {}", formatLang, e);
+				}
 			}
 			result.putAll(dbResult);
 		}
@@ -275,63 +302,104 @@ public class LocalizeServiceImpl
 		return result;
 	}
 
-	private String getContent(String namespace, String localizeCode, String languageTag) {
-		LocalizeEntity resource = localizeMapper
-				.selectOne(new LambdaQueryWrapper<LocalizeEntity>().eq(LocalizeEntity::getLocalizeCode, localizeCode)
-						.eq(LocalizeEntity::getNamespace, namespace));
+	private Map<String, String> getContents(List<String> localizeCodes, String lang) {
+		// Direct query by localizeCodes + exact fullLang, batch
+		List<LocalizeEntity> localizeEntitys =
+				list(new LambdaQueryWrapper<LocalizeEntity>().in(LocalizeEntity::getLocalizeCode, localizeCodes)
+						.eq(LocalizeEntity::getFullLang, lang));
 
-		if (resource == null) {
-			log.warn("Resource not found: {} in namespace {}", localizeCode, namespace);
-			return localizeCode;
-		}
+		Map<String, String> result = new LinkedHashMap<>();
+		// Default all requested codes to the code itself
+		localizeCodes.stream().forEach(t -> result.put(t, t));
 
-		List<String> fallbackChain = LocalizeHelpers.buildFallback(languageTag);
+		// Track codes that still need fallback resolution
+		List<String> unresolvedKeys = new ArrayList<>(localizeCodes);
 
-		List<LanguageEntity> tags = languageMapper.selectList(new LambdaQueryWrapper<LanguageEntity>().in(
-				LanguageEntity::getLang,
-				fallbackChain.stream().map(t -> LocalizeHelpers.parse(t).getLanguage()).collect(Collectors.toList())));
-
-		Map<String, LanguageEntity> tagMap = tags.stream()
-				.collect(Collectors.toMap(
-						t -> LocalizeHelpers.toStandard(t.getLang(), t.getScript(), t.getCountry(), t.getVariant()),
-						t -> t));
-
-		for (String tag : fallbackChain) {
-			String normalizedTag = tag.replace('_', '-');
-			normalizedTag = normalizedTag.replaceAll("-+", "-");
-			LanguageEntity matchedTag = tagMap.get(normalizedTag);
-			if (matchedTag != null) {
-				LocalizeItemEntity item = localizeItemMapper.selectOne(new LambdaQueryWrapper<LocalizeItemEntity>()
-						.eq(LocalizeItemEntity::getLocalizeId, resource.getId())
-						.eq(LocalizeItemEntity::getLanguageId, matchedTag.getId()));
-				if (null != item && StrHelper.isNotBlank(item.getContent())) {
-					return item.getContent();
+		// Apply direct matches first, removing them from unresolved set
+		if (ListHelper.isNotEmpty(localizeEntitys)) {
+			for (LocalizeEntity entity : localizeEntitys) {
+				if (StrHelper.isNotBlank(entity.getContent())) {
+					result.put(entity.getLocalizeCode(), entity.getContent());
+					unresolvedKeys.remove(entity.getLocalizeCode());
 				}
 			}
 		}
 
-		return resource.getDefaultValue() != null ? resource.getDefaultValue() : localizeCode;
-	}
-
-	private Map<String, String> getTranslationsFromDB(String namespace, List<String> keys, String lang) {
-		Map<String, String> result = new LinkedHashMap<>();
-		for (String key : keys) {
-			result.put(key, getContent(namespace, key, lang));
+		// All codes resolved, no fallback needed
+		if (unresolvedKeys.isEmpty()) {
+			return result;
 		}
+
+		// Build fallback chain and collect all candidate languageIds
+		List<String> fallbackChain = LocalizeHelpers.buildFallback(lang);
+
+		List<LanguageEntity> tags = languageMapper
+				.selectList(new LambdaQueryWrapper<LanguageEntity>().in(LanguageEntity::getFullLang, fallbackChain));
+
+		if (CollectionUtils.isEmpty(tags)) {
+			return result;
+		}
+
+		// Order languageIds by fallback chain priority (most specific first)
+		Map<String, LanguageEntity> fullLang2Language =
+				tags.stream().collect(Collectors.toMap(LanguageEntity::getFullLang, Function.identity()));
+
+		List<Long> orderedLanguageIds = new ArrayList<>();
+		for (String languageTag : fallbackChain) {
+			LanguageEntity matchedTag = fullLang2Language.get(languageTag);
+			if (matchedTag != null) {
+				orderedLanguageIds.add(matchedTag.getId());
+			}
+		}
+
+		if (orderedLanguageIds.isEmpty()) {
+			return result;
+		}
+
+		// Batch fallback query by (languageIds IN list) AND (localizeCode IN
+		// unresolved)
+		List<LocalizeEntity> fallbackEntities = baseMapper.selectList(
+				new LambdaQueryWrapper<LocalizeEntity>().in(LocalizeEntity::getLanguageId, orderedLanguageIds)
+						.in(LocalizeEntity::getLocalizeCode, unresolvedKeys));
+
+		if (ListHelper.isEmpty(fallbackEntities)) {
+			return result;
+		}
+
+		// Build lookup: (languageId, localizeCode) -> content
+		Map<String, String> fallbackLookup = new HashMap<>();
+		for (LocalizeEntity e : fallbackEntities) {
+			if (StrHelper.isNotBlank(e.getContent())) {
+				fallbackLookup.put(e.getLanguageId() + "_" + e.getLocalizeCode(), e.getContent());
+			}
+		}
+
+		// For each unresolved code, apply fallback in priority order
+		Set<String> resolvedSet = new HashSet<>();
+		for (Long langId : orderedLanguageIds) {
+			for (String code : unresolvedKeys) {
+				if (resolvedSet.contains(code)) {
+					continue;
+				}
+				String lookupKey = langId + "_" + code;
+				if (fallbackLookup.containsKey(lookupKey)) {
+					result.put(code, fallbackLookup.get(lookupKey));
+					resolvedSet.add(code);
+				}
+			}
+			if (resolvedSet.size() == unresolvedKeys.size()) {
+				break;
+			}
+		}
+
 		return result;
 	}
 
 	private String buildCacheKey(String lang) {
-		String formatLang = LocalizeHelpers.parse(lang).getLanguage();
-
-		return ConstCache.buildRedisKey(ConstStarter.PROJECT_NAME, ConstLocalize.MODULE_NAME,
-				dreamLocalizeProperties.getDefaultNamespace(), formatLang, "*");
+		return ConstCache.buildRedisKey(ConstStarter.PROJECT_NAME, ConstLocalize.MODULE_NAME, lang, "*");
 	}
 
-	private String buildCacheKey(String localizeCode, String lang, String namespace) {
-		String formatLang = LocalizeHelpers.parse(lang).getLanguage();
-
-		return ConstCache.buildRedisKey(ConstStarter.PROJECT_NAME, ConstLocalize.MODULE_NAME, namespace, formatLang,
-				localizeCode);
+	private String buildCacheKey(String lang, String localizeCode) {
+		return ConstCache.buildRedisKey(ConstStarter.PROJECT_NAME, ConstLocalize.MODULE_NAME, lang, localizeCode);
 	}
 }

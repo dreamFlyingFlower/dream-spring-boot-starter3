@@ -22,7 +22,7 @@ public interface LocalizeService extends BaseServices<LocalizeEntity, LocalizeVO
 
 	String getMessage(String localizeCode, String lang);
 
-	String getMessage(String localizeCode, String lang, String namespace);
+	Map<String, String> getMessages(List<String> localizeCodes, String lang);
 
 	Map<String, String> getAllMessages(String lang);
 

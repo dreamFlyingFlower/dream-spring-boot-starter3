@@ -34,6 +34,7 @@ public class LanguageQuery extends AbstractTenantQuery {
 	private String displayName;
 
 	@Schema(description = "语言")
+	@Query(type = QueryType.LIKE)
 	private String lang;
 
 	@Schema(description = "区域脚本代码")
@@ -44,6 +45,10 @@ public class LanguageQuery extends AbstractTenantQuery {
 
 	@Schema(description = "区域变体代码")
 	private String variant;
+
+	@Schema(description = "标准语言代码")
+	@Query(type = QueryType.LIKE)
+	private String fullLang;
 
 	@Schema(description = "启用标志:0-未启用;1-启用")
 	private Integer enabled;

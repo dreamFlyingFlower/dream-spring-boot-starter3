@@ -54,6 +54,11 @@ public class LanguageEntity extends AbstractTenantEntity {
 	private String variant;
 
 	/**
+	 * 标准语言代码,非Java版本
+	 */
+	private String fullLang;
+
+	/**
 	 * 启用标志:0-未启用;1-启用
 	 */
 	private Integer enabled;

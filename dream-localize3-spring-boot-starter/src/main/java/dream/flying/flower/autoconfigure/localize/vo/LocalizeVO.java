@@ -5,10 +5,10 @@ import com.fhs.core.trans.vo.TransPojo;
 import dream.flying.flower.framework.core.valid.ValidAdd;
 import dream.flying.flower.framework.core.valid.ValidAdds;
 import dream.flying.flower.framework.core.valid.ValidEdit;
-import dream.flying.flower.framework.core.valid.ValidEdits;
 import dream.flying.flower.framework.web.model.AbstractTenantVO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -40,27 +40,21 @@ public class LocalizeVO extends AbstractTenantVO implements TransPojo {
 	@Size(max = 32, message = "国际化编码最大长度不能超过32", groups = { ValidAdd.class, ValidEdit.class })
 	private String localizeCode;
 
+	@Schema(description = "语言ID")
+	@NotNull(message = "语言ID不能为空", groups = ValidAdds.class)
+	private Long languageId;
+
+	@Schema(description = "标准语言代码")
+	@NotBlank(message = "标准语言代码不能为空", groups = ValidAdds.class)
+	@Size(max = 32, message = "标准语言代码最大长度不能超过32", groups = { ValidAdd.class, ValidEdit.class })
+	private String fullLang;
+
 	@Schema(description = "国际化信息")
 	@NotBlank(message = "国际化信息不能为空", groups = ValidAdds.class)
-	@Size(max = 256, message = "国际化信息最大长度不能超过256", groups = { ValidAdd.class, ValidEdit.class })
-	private String localizeMessage;
+	private String content;
 
-	@Schema(description = "语言")
-	@NotBlank(message = "语言不能为空", groups = ValidAdds.class)
-	@Size(max = 10, message = "语言最大长度不能超过10", groups = { ValidAdd.class, ValidEdit.class })
-	private String lang;
-
-	@Schema(description = "国家/地区")
-	@Size(max = 32, message = "国家/地区长度不能超过 32 个字符", groups = { ValidAdds.class, ValidEdits.class })
-	private String country;
-
-	@Schema(description = "区域脚本")
-	@Size(max = 32, message = "区域脚本长度不能超过 32 个字符", groups = { ValidAdds.class, ValidEdits.class })
-	private String script;
-
-	@Schema(description = "区域变体代码")
-	@Size(max = 32, message = "区域变体代码长度不能超过 32 个字符", groups = { ValidAdds.class, ValidEdits.class })
-	private String variant;
+	@Schema(description = "数据类型")
+	private Integer dataType;
 
 	@Schema(description = "备注")
 	@Size(max = 256, message = "备注最大长度不能超过256", groups = { ValidAdd.class, ValidEdit.class })
