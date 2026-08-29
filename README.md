@@ -248,7 +248,7 @@ emailService.sendEmailWithAttachments("user@example.com", "notification", variab
 
 
 
-# i18n
+# i18n (dream-localize3-spring-boot-starter)
 
 
 
@@ -258,18 +258,54 @@ emailService.sendEmailWithAttachments("user@example.com", "notification", variab
 
 * 提供国际化消息管理功能
 * 支持多语言切换
-* 基于数据库存储国际化消息
+* 基于数据库(system_language / sys_localize) + Flyway 建表
 * 支持 Redis 缓存优化性能
+* 支持 Session / Cookie / Accept-Header / Fixed 4 种 Locale 解析策略切换
+* 提供本地缓存写操作自动 evict 钩子 + 可选手动强制清缓存 REST API
 
 
 
-## 配置项
+## 依赖要求
 
 
 
-* `dream.i18n.enabled`:是否启用国际化功能,默认true
-* `dream.i18n.default-locale`:默认语言,默认zh_CN
-* `dream.i18n.cache-expire-hours`:缓存过期时间(小时),默认24
+### 1. MyBatis-Plus 逻辑删除配置
+
+当前 starter 中的 `sys_language`、`sys_localize` 表都使用了 `deleted TINYINT UNSIGNED` 作为逻辑删除字段,但本 starter **不强制要求显式过滤 deleted=0**。逻辑删除行为由引用 starter 的宿主工程在 MyBatis-Plus 全局配置中完成。建议宿主工程添加如下 MP 全局逻辑删除配置(示例):
+
+```yaml
+mybatis-plus:
+  global-config:
+    db-config:
+      logic-delete-field: deleted
+      logic-delete-value: 1
+      logic-not-delete-value: 0
+```
+
+启用后,所有通过 MP BaseMapper / AbstractServiceImpl 生成的 SQL 都会自动追加 `deleted=0`,不需要每个查询手写,已在 Service 层移除所有显式 deleted 条件。
+
+
+
+## 配置项(dream.localize.*)
+
+
+
+* `dream.localize.enabled`:是否启用国际化自动配置,默认 true
+* `dream.localize.enabled-endpoint`:是否启用 LocalizeEndpoint / LanguageEndpoint CRUD + 前端联动接口,默认 true
+* `dream.localize.enabled-cache-endpoint`:是否启用国际化缓存强制清理 REST API,默认 **false**(安全考虑,生产需手动开启)
+* `dream.localize.default-locale`:默认语言,推荐使用 BCP-47 格式 `zh-CN`,同时兼容 `zh_CN`
+* `dream.localize.supported-locales`:支持的语言列表,默认 `[zh-CN, en-US]`,Accept-Header 解析器严格匹配
+* `dream.localize.locale-resolver`:语言解析策略,枚举类型,可选 `SESSION` / `COOKIE` / `HEADER`(默认,优先使用,基于自定义命名的请求头,key 见下 header-name)/ `ACCEPT_HEADER`(HTTP 标准 Accept-Language 加权列表,与 HEADER 不同) / `FIXED`;yml 中大小写不敏感,IDEA 通过 spring-boot-configuration-processor 可直接提示枚举值;HEADER 模式对 REST/JWT 无会话场景最友好
+* `dream.localize.header-name`:当 `locale-resolver=HEADER` 时使用的自定义请求头 key 名,默认 `X-App-Language`,前端在每次请求时将当前语言标签(如 `zh-CN`)写入此 header;若该 header 未传或解析失败,自动回退到 Servlet 容器对 Accept-Language 的解析,再失败用 defaultLocale
+* `dream.localize.locale-change-param-name`:URL 参数切换语言时的参数名,默认 `lang`(仅 SESSION/COOKIE 模式会响应此参数切换语言,HEADER/ACCEPT_HEADER/FIXED 为只读模式,不支持通过 param 切换)
+* `dream.localize.ignore-invalid-locale`:非法 locale 输入是否忽略回退默认,默认 true
+* `dream.localize.cookie-name`:Cookie 解析器的 cookie 名,默认 `dream_lang`
+* `dream.localize.cookie-path`:Cookie 路径,默认 `/`
+* `dream.localize.cookie-max-age`:Cookie 过期时间,默认 7d
+* `dream.localize.cookie-http-only`:Cookie HttpOnly 标志,默认 true
+* `dream.localize.expire`:国际化 Redis 缓存过期时间,默认 24h
+* `dream.localize.enabled-api`:是否启用 knife4j/springdoc API 文档分组,默认 true
+* `dream.localize.api-group / api-group-name / api-package-scan`:springdoc GroupedOpenApi 分组参数
 
 
 
@@ -277,11 +313,46 @@ emailService.sendEmailWithAttachments("user@example.com", "notification", variab
 
 
 
-* 引入当前starter
-* 配置数据库连接
-* 系统启动时自动创建 sys_localization 表
-* 注入 I18nService 使用
-* 通过 URL 参数 ?lang=en_US 切换语言
+### 1. 引入 starter
+
+```xml
+<dependency>
+  <groupId>dream.flying.flower</groupId>
+  <artifactId>dream-localize3-spring-boot-starter</artifactId>
+</dependency>
+```
+
+### 2. 数据库与缓存
+
+* 系统启动时 Flyway 自动执行 `V1.0.0__Create_localize_table.sql`(建表) + `V1.0.1__Fix_localize_constraints.sql`(UNIQUE/INDEX)
+* 如已存在重复数据,V1.0.1 会失败,请先清理脏数据(脚本头注释附检测 SQL)
+
+### 3. 后端接口使用
+
+* `MessageSource.getMessage(code, args, locale)`:Spring 标准 MessageSource API,DB 驱动
+* 注入 `LocalizeService`:直接使用 `getMessage / getAllMessages / getMessages` 等 API
+
+### 4. 前端联动接口(启用 enabled-endpoint=true 时)
+
+* 语言下拉:`GET /language/list?enabled=1` → 启用语言传 `enabled=1`(由 LanguageQuery.enabled 接收,传 null/不传返回所有)
+* 启动一次性全量拉取词条:`GET /localize/messages?lang=zh-CN`(lang 不传则用当前 LocaleContextHolder 语言)
+* 懒加载模块批量拉取:`POST /localize/messages/batch?lang=xx` Body: `["code1","code2"]`
+
+### 5. 缓存管理接口(启用 enabled-cache-endpoint=true 时)
+
+* 全清空:`DELETE /localize-cache`
+* 单语言清空:`DELETE /localize-cache/zh-CN`
+
+### 6. 语言切换
+
+* Session / Cookie 解析器:通过 URL `?lang=zh-CN` 切换(LocaleChangeInterceptor 自动拦截,参数名由 locale-change-param-name 配置)
+* Header 解析器(默认):不支持 URL 参数切换。前端把 `zh-CN` 等语言标签写入配置的 `header-name` 请求头(默认 `X-App-Language`),每次请求带这个 header 值即可
+* Accept-Header 解析器:完全由浏览器/HTTP 客户端的标准 `Accept-Language` 请求头决定
+* Fixed:固定语言,无法切换
+
+### 备注:关于 enabled 过滤
+
+`sys_language.enabled` 作为业务启用状态由前端通过 `LanguageQuery.enabled` 透传查询;但国际化 fallback 匹配链路中,只有 `enabled=1` 的语言会被纳入回退链,这是 Service 内部规则,由框架在 fallback 查询阶段自动过滤。此时若把某语言禁用,管理端仍可查询管理,但实时 fallback 不会再匹配它,保证管理员可控。
 
 
 

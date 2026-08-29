@@ -29,6 +29,7 @@ import dream.flying.flower.autoconfigure.localize.service.LocalizeService;
 import dream.flying.flower.autoconfigure.localize.vo.LocalizeVO;
 import dream.flying.flower.collection.ListHelper;
 import dream.flying.flower.framework.constant.ConstCache;
+import dream.flying.flower.framework.constant.ConstCore;
 import dream.flying.flower.framework.constant.ConstStarter;
 import dream.flying.flower.framework.mybatis.plus.service.impl.AbstractServiceImpl;
 import dream.flying.flower.lang.StrHelper;
@@ -101,8 +102,10 @@ public class LocalizeServiceImpl
 		// Fallback processing
 		List<String> fallbackChain = LocalizeHelpers.buildFallback(lang);
 
+		// Only enabled (enabled=1, deleted=0) languages participate in fallback chain.
 		List<LanguageEntity> tags = languageMapper
-				.selectList(new LambdaQueryWrapper<LanguageEntity>().in(LanguageEntity::getFullLang, fallbackChain));
+				.selectList(new LambdaQueryWrapper<LanguageEntity>().in(LanguageEntity::getFullLang, fallbackChain)
+						.eq(LanguageEntity::getEnabled, ConstCore.ENABLE));
 
 		Map<String, LanguageEntity> fullLang2Language =
 				tags.stream().collect(Collectors.toMap(LanguageEntity::getFullLang, Function.identity()));
@@ -141,8 +144,7 @@ public class LocalizeServiceImpl
 
 		// Query from database using standardized lang
 		List<LocalizeEntity> messages =
-				list(new LambdaQueryWrapper<LocalizeEntity>().eq(LocalizeEntity::getFullLang, formatLang)
-						.eq(LocalizeEntity::getDeleted, 0));
+				list(new LambdaQueryWrapper<LocalizeEntity>().eq(LocalizeEntity::getFullLang, formatLang));
 
 		Map<String, String> messageMap = messages.stream()
 				.collect(Collectors.toMap(LocalizeEntity::getLocalizeCode, LocalizeEntity::getContent));
@@ -303,7 +305,7 @@ public class LocalizeServiceImpl
 	}
 
 	private Map<String, String> getContents(List<String> localizeCodes, String lang) {
-		// Direct query by localizeCodes + exact fullLang, batch
+		// Direct query by localizeCodes + exact fullLang, batch, ignore logically deleted rows
 		List<LocalizeEntity> localizeEntitys =
 				list(new LambdaQueryWrapper<LocalizeEntity>().in(LocalizeEntity::getLocalizeCode, localizeCodes)
 						.eq(LocalizeEntity::getFullLang, lang));
@@ -330,36 +332,27 @@ public class LocalizeServiceImpl
 			return result;
 		}
 
-		// Build fallback chain and collect all candidate languageIds
+		// Build fallback chain and collect enabled/not-deleted candidate languageIds
 		List<String> fallbackChain = LocalizeHelpers.buildFallback(lang);
 
 		List<LanguageEntity> tags = languageMapper
-				.selectList(new LambdaQueryWrapper<LanguageEntity>().in(LanguageEntity::getFullLang, fallbackChain));
+				.selectList(new LambdaQueryWrapper<LanguageEntity>().in(LanguageEntity::getFullLang, fallbackChain)
+						.eq(LanguageEntity::getEnabled, ConstCore.ENABLE));
 
 		if (CollectionUtils.isEmpty(tags)) {
 			return result;
 		}
 
-		// Order languageIds by fallback chain priority (most specific first)
+		// Map fullLang -> LanguageEntity, built from matched tags for quick lookup
 		Map<String, LanguageEntity> fullLang2Language =
 				tags.stream().collect(Collectors.toMap(LanguageEntity::getFullLang, Function.identity()));
 
-		List<Long> orderedLanguageIds = new ArrayList<>();
-		for (String languageTag : fallbackChain) {
-			LanguageEntity matchedTag = fullLang2Language.get(languageTag);
-			if (matchedTag != null) {
-				orderedLanguageIds.add(matchedTag.getId());
-			}
-		}
-
-		if (orderedLanguageIds.isEmpty()) {
-			return result;
-		}
-
-		// Batch fallback query by (languageIds IN list) AND (localizeCode IN
-		// unresolved)
+		// Batch fallback query by (all ids in matched tags) AND (unresolved localizeCodes).
+		// The order inside the SQL IN() list does not affect the result set; the strict
+		// fallback priority is enforced later when iterating fallbackChain directly.
+		List<Long> tagIds = tags.stream().map(LanguageEntity::getId).collect(Collectors.toList());
 		List<LocalizeEntity> fallbackEntities = baseMapper.selectList(
-				new LambdaQueryWrapper<LocalizeEntity>().in(LocalizeEntity::getLanguageId, orderedLanguageIds)
+				new LambdaQueryWrapper<LocalizeEntity>().in(LocalizeEntity::getLanguageId, tagIds)
 						.in(LocalizeEntity::getLocalizeCode, unresolvedKeys));
 
 		if (ListHelper.isEmpty(fallbackEntities)) {
@@ -374,9 +367,19 @@ public class LocalizeServiceImpl
 			}
 		}
 
-		// For each unresolved code, apply fallback in priority order
+		// Apply fallback in the exact priority order defined by fallbackChain
+		// (most specific tag first, e.g. zh-Hans-CN -> zh-CN -> zh-Hans -> zh).
+		// Reuse the already-built fullLang2Language index to resolve the languageId,
+		// so we avoid an extra intermediate orderedLanguageIds materialization.
+		// Codes already resolved by the higher-priority language are skipped (resolvedSet),
+		// so a lower-priority language never overwrites a higher-priority match.
 		Set<String> resolvedSet = new HashSet<>();
-		for (Long langId : orderedLanguageIds) {
+		for (String languageTag : fallbackChain) {
+			LanguageEntity matchedTag = fullLang2Language.get(languageTag);
+			if (matchedTag == null) {
+				continue;
+			}
+			Long langId = matchedTag.getId();
 			for (String code : unresolvedKeys) {
 				if (resolvedSet.contains(code)) {
 					continue;
@@ -401,5 +404,130 @@ public class LocalizeServiceImpl
 
 	private String buildCacheKey(String lang, String localizeCode) {
 		return ConstCache.buildRedisKey(ConstStarter.PROJECT_NAME, ConstLocalize.MODULE_NAME, lang, localizeCode);
+	}
+
+	// ============== Write hooks: invalidate cache after any DB modification =========
+
+	@Override
+	public boolean save(LocalizeEntity entity) {
+		boolean ok = super.save(entity);
+		if (ok) {
+			evictCacheByEntity(entity);
+		}
+		return ok;
+	}
+
+	@Override
+	public boolean updateById(LocalizeEntity entity) {
+		boolean ok = super.updateById(entity);
+		if (ok) {
+			evictCacheByEntity(entity);
+		}
+		return ok;
+	}
+
+	@Override
+	public boolean removeById(Long id) {
+		LocalizeEntity old = findOneById(id);
+		boolean ok = super.removeById(id);
+		if (ok) {
+			if (old != null) {
+				evictCacheByEntity(old);
+			} else {
+				clearCache();
+			}
+		}
+		return ok;
+	}
+
+	@Override
+	public boolean saveBatch(List<LocalizeEntity> entityList) {
+		boolean ok = super.saveBatch(entityList);
+		if (ok) {
+			evictCacheByEntities(entityList);
+		}
+		return ok;
+	}
+
+	@Override
+	public boolean updateBatchById(List<LocalizeEntity> entityList) {
+		boolean ok = super.updateBatchById(entityList);
+		if (ok) {
+			evictCacheByEntities(entityList);
+		}
+		return ok;
+	}
+
+	@Override
+	public boolean remove(com.baomidou.mybatisplus.core.conditions.Wrapper<LocalizeEntity> queryWrapper) {
+		boolean ok = super.remove(queryWrapper);
+		if (ok) {
+			clearCache();
+		}
+		return ok;
+	}
+
+	/**
+	 * Evict the entire language cache for the fullLang tag carried on the entity.
+	 * If the entity does not carry fullLang, fall back to full cache clear.
+	 *
+	 * @param entity written localize entity
+	 */
+	private void evictCacheByEntity(LocalizeEntity entity) {
+		if (entity == null) {
+			return;
+		}
+		String tag = entity.getFullLang();
+		if (tag != null && !tag.isEmpty()) {
+			evictCache(tag);
+		} else {
+			clearCache();
+		}
+	}
+
+	/**
+	 * Evict language caches for all distinct fullLang tags present on the list. If
+	 * any entity has no fullLang tag, fall back to full cache clear.
+	 *
+	 * @param entityList written batch
+	 */
+	private void evictCacheByEntities(List<LocalizeEntity> entityList) {
+		if (ListHelper.isEmpty(entityList)) {
+			return;
+		}
+		boolean safe = true;
+		Set<String> tags = new HashSet<>(4);
+		for (LocalizeEntity e : entityList) {
+			if (e == null || StrHelper.isBlank(e.getFullLang())) {
+				safe = false;
+				break;
+			}
+			tags.add(e.getFullLang());
+		}
+		if (safe) {
+			for (String tag : tags) {
+				evictCache(tag);
+			}
+		} else {
+			clearCache();
+		}
+	}
+
+	/**
+	 * Load entity by PK for cache invalidation before removal.
+	 *
+	 * @param id entity primary key
+	 * @return entity if found, otherwise null
+	 */
+	private LocalizeEntity findOneById(Long id) {
+		if (id == null) {
+			return null;
+		}
+		try {
+			return getById(id);
+		} catch (Exception ex) {
+			log.error("Localize findOneById failed for id: {}", id, ex);
+			return null;
+		}
 	}
 }

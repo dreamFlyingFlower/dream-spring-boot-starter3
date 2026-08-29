@@ -6,6 +6,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 
+import org.springframework.context.i18n.LocaleContextHolder;
+
 import dream.flying.flower.lang.StrHelper;
 
 /**
@@ -18,23 +20,27 @@ import dream.flying.flower.lang.StrHelper;
 public class LocalizeHelpers {
 
 	/**
-	 * 获取本地国际标准Locale字符串
+	 * 获取当前请求上下文的国际标准Locale字符串.
 	 *
-	 * @return language code (e.g., zh-CN, en-US)
+	 * Prefers Spring {@link LocaleContextHolder} so callers inside http request
+	 * receive the caller-resolved locale. Falls back to {@link Locale#getDefault()}
+	 * when LocaleContextHolder returns system default outside request thread.
+	 *
+	 * @return language code in BCP-47 format (e.g., zh-CN, en-US)
 	 */
 	public static String getLang() {
-		return getLang(Locale.getDefault());
+		return getLang(LocaleContextHolder.getLocale());
 	}
 
 	/**
 	 * 获取国际标准Locale字符串
 	 *
 	 * @param locale locale
-	 * @return language code (e.g., zh-CN, en-US)
+	 * @return language code in BCP-47 format (e.g., zh-CN, en-US)
 	 */
 	public static String getLang(Locale locale) {
 		if (locale == null) {
-			locale = Locale.getDefault();
+			return getLang();
 		}
 		return locale.toLanguageTag();
 	}

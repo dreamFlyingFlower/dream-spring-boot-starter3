@@ -13,4 +13,5 @@ import dream.flying.flower.framework.mybatis.plus.service.BaseServices;
  * @git {@link https://github.com/dreamFlyingFlower}
  */
 public interface LanguageService extends BaseServices<LanguageEntity, LanguageVO, LanguageQuery> {
+
 }
