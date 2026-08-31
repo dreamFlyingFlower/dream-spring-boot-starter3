@@ -354,6 +354,20 @@ mybatis-plus:
 
 `sys_language.enabled` 作为业务启用状态由前端通过 `LanguageQuery.enabled` 透传查询;但国际化 fallback 匹配链路中,只有 `enabled=1` 的语言会被纳入回退链,这是 Service 内部规则,由框架在 fallback 查询阶段自动过滤。此时若把某语言禁用,管理端仍可查询管理,但实时 fallback 不会再匹配它,保证管理员可控。
 
+### 常见问题
+
+**Q1:启动报错 `BeanDefinitionOverrideException: Invalid bean definition with name 'localeResolver' / 'messageSource' / 'localeChangeInterceptor' defined in class path resource [...] already registered in ...`**
+
+**原因**: Spring Boot 通过 `MessageSourceAutoConfiguration`(默认注册 `messageSource`)和 `WebMvcAutoConfiguration`(默认注册 `localeResolver`),以及宿主工程可能手写的同名 `@Bean`,当三方同时声明时由于 Spring Boot 3.x 默认 `spring.main.allow-bean-definition-overriding=false`,会直接抛出冲突。
+
+**解决方案:** starter 侧已按 Spring Boot 官方最佳实践做了三层兜底修复(无需宿主改任何代码),冲突应当自动消失。如果仍报冲突,按以下优先级排查:
+
+1. **优先推荐:** 宿主工程删除自己手写的 `@Bean LocaleResolver` / `@Bean MessageSource` / `@Bean LocaleChangeInterceptor`,让我方 starter 的策略 Bean 生效;我方 starter 的 LocaleResolver 支持 5 种策略切换,且 MessageSource 是**数据库驱动 + Redis 缓存**实现,覆盖了默认 ResourceBundle/Properties 方案,功能更丰富
+2. **若宿主确实需要自定义 LocaleResolver/MessageSource**(例如嵌入特殊 SaaS 多租户逻辑):保留宿主的同名 `@Bean` 定义即可。我方 starter 已为这 3 个 Bean 全部加上 `@ConditionalOnMissingBean(name="xxx")` 条件装配 —— 检测到宿主工程已存在同名 Bean,我方会自动跳过装配,不再冲突
+3. **极端情况 2 份 starter 同时被引入:** 保证 Maven 依赖中只有一个 `dream-localize3-spring-boot-starter` 实例,检查 `dependencyManagement` 版本冲突,或临时 `application.yml` 加 `spring.main.allow-bean-definition-overriding=true` 应急(不推荐长期开启)
+
+**装配顺序保证:** 我方 `LocalizeAutoConfiguration` 类声明了 `@AutoConfiguration(before = { MessageSourceAutoConfiguration.class, WebMvcAutoConfiguration.class })`,确保 starter 先注册 `messageSource` / `localeResolver`,Spring Boot 默认的自动装配会因 `@ConditionalOnMissingBean(name=xxx)` 检测到我方 Bean 已存在而**主动跳过**,不会产生冲突。我方 `messageSource` Bean 同时加了 `@Primary`,保证在宿主工程显式使用 `@Qualifier("messageSource")` 或框架查找 `MessageSource` 类型时,DB 驱动实现优先注入。
+
 
 
 # excel

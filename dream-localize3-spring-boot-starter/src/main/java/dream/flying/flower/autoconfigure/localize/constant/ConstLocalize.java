@@ -13,11 +13,11 @@ import dream.flying.flower.autoconfigure.localize.enums.LocaleResolverType;
  * nested interfaces {@code Resolver} and {@code Defaults} no longer exist:
  * <ul>
  * <li>The resolver strategy string constants were removed because
- *     {@link LocaleResolverType} enum takes their place as the single source of
- *     truth for both IDE hints and configuration binding.</li>
+ * {@link LocaleResolverType} enum takes their place as the single source of
+ * truth for both IDE hints and configuration binding.</li>
  * <li>All defaults previously declared in {@code Defaults} are now top-level
- *     constants on {@code ConstLocalize} for shorter import paths and easier
- *     code reading.</li>
+ * constants on {@code ConstLocalize} for shorter import paths and easier code
+ * reading.</li>
  * </ul>
  * </p>
  *
@@ -35,11 +35,10 @@ public interface ConstLocalize {
 	String DEFAULT_LOCALE = "zh-CN";
 
 	/**
-	 * Default locale resolver strategy enum type. HEADER is the default strategy
-	 * for stateless REST / JWT architectures: resolver reads a custom named HTTP
-	 * header ({@link #DEFAULT_HEADER_NAME}) carrying a single BCP-47 language tag.
+	 * Default locale resolver strategy enum type. ACCEPT_HEADER is the default
+	 * strategy for stateless REST / JWT architectures
 	 */
-	LocaleResolverType DEFAULT_LOCALE_RESOLVER_TYPE = LocaleResolverType.HEADER;
+	LocaleResolverType DEFAULT_LOCALE_RESOLVER_TYPE = LocaleResolverType.ACCEPT_HEADER;
 
 	/**
 	 * Default locale change request parameter name. Used by SESSION and COOKIE
@@ -82,14 +81,36 @@ public interface ConstLocalize {
 	String DEFAULT_HEADER_NAME = "X-App-Language";
 
 	/**
-	 * Default enabled-cache-endpoint flag. False by default for security because
-	 * cache eviction is a potentially dangerous operator-only action.
-	 */
-	boolean DEFAULT_ENABLED_CACHE_ENDPOINT = false;
-
-	/**
 	 * Default list of supported locale tags. The ACCEPT_HEADER resolver will
 	 * strictly match incoming Accept-Language values against this list.
 	 */
 	List<String> DEFAULT_SUPPORTED_LOCALES = List.of("zh-CN", "en-US");
+
+	/**
+	 * Flyway classpath location where localize starter SQL migrations live. Each
+	 * starter MUST use its own migration sub-directory under classpath:db/migration
+	 * (e.g. localize, quartz, job etc.) so SQLs from different starters are not
+	 * merged into the same default locations bucket and cannot collide on
+	 * duplicated version numbers.
+	 *
+	 * Rule: {@code db/migration/<MODULE_NAME>} where MODULE_NAME is the starter
+	 * identifier (localize for this starter).
+	 */
+	String FLYWAY_LOCATION_PATH = "db/migration/" + MODULE_NAME;
+
+	/**
+	 * Full classpath: prefix form of the migration directory for use in
+	 * FlywayConfigurationCustomizer locations arrays.
+	 */
+	String FLYWAY_LOCATION_CLASSPATH = "classpath:" + FLYWAY_LOCATION_PATH;
+
+	/**
+	 * Independent schema history table name used by the isolated per-starter
+	 * Flyway instance. Each starter MUST reserve a UNIQUE, non-colliding table
+	 * name using the pattern {@code flyway_<MODULE_NAME>_history} so two starters
+	 * can use exactly the same migration version prefix (e.g. both V1.0.0) and
+	 * NEVER collide. Rule: table name length <= MySQL 64 char identifier limit,
+	 * all lowercase, underscore separated.
+	 */
+	String FLYWAY_HISTORY_TABLE = "flyway_" + MODULE_NAME + "_history";
 }

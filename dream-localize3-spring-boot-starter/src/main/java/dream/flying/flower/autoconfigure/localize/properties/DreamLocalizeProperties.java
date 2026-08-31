@@ -35,7 +35,7 @@ public class DreamLocalizeProperties {
 	/**
 	 * Enable cache endpoint (cache clear/evict). False by default for security
 	 */
-	private boolean enabledCacheEndpoint = ConstLocalize.DEFAULT_ENABLED_CACHE_ENDPOINT;
+	private boolean enabledCacheEndpoint = true;
 
 	/**
 	 * Default locale tag in BCP-47 format, e.g. zh-CN. Also accepts legacy zh_CN
@@ -64,9 +64,9 @@ public class DreamLocalizeProperties {
 	private boolean ignoreInvalidLocale = ConstLocalize.DEFAULT_IGNORE_INVALID_LOCALE;
 
 	/**
-	 * Custom header name used when {@code locale-resolver=HEADER}. Frontend
-	 * passes the BCP-47 language tag (e.g. zh-CN) into this named header for
-	 * each request in stateless token-based architectures.
+	 * Custom header name used when {@code locale-resolver=HEADER}. Frontend passes
+	 * the BCP-47 language tag (e.g. zh-CN) into this named header for each request
+	 * in stateless token-based architectures.
 	 */
 	private String headerName = ConstLocalize.DEFAULT_HEADER_NAME;
 

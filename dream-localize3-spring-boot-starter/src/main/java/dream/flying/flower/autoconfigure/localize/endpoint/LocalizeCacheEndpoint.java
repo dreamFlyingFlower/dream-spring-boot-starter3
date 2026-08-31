@@ -58,12 +58,10 @@ public class LocalizeCacheEndpoint implements BaseController {
 	 * @param lang BCP-47 language tag or raw java format tag, e.g. zh-CN / zh_CN
 	 * @return ok
 	 */
-	@Operation(summary = "按语言清缓存",
-			description = "删除指定语言的单条词条缓存 + 整包Hash缓存,只影响这一个语言", method = "DELETE")
+	@Operation(summary = "按语言清缓存", description = "删除指定语言的单条词条缓存 + 整包Hash缓存,只影响这一个语言", method = "DELETE")
 	@DeleteMapping("/{lang}")
-	public Result<Void> evictCache(
-			@Parameter(description = "语言标签,支持zh-CN(标准)或zh_CN(Java)格式")
-			@PathVariable("lang") String lang) {
+	public Result<Void>
+			evictCache(@Parameter(description = "语言标签,支持zh-CN(标准)或zh_CN(Java)格式") @PathVariable String lang) {
 		localizeService.evictCache(lang);
 		return Result.ok();
 	}

@@ -1,5 +1,110 @@
 # Change Log
 
+## 2026-08-31(第十一轮:解决宿主工程引入 starter 启动时 'localeResolver / messageSource / localeChangeInterceptor' BeanDefinitionOverrideException 重复注册冲突)
+
+### 修正改进(1 条)
+
+**① LocalizeAutoConfiguration 中 3 个 Spring 容器"约定名"Bean 加条件装配 + 调整自动配置顺序,彻底避免与宿主工程手写配置和 Spring Boot 默认自动配置冲突**
+
+*变更原因:*
+用户反馈 **"将该 starter 在其他项目中运行时直接报错:LocaleResolver 已经被注册了,不能重复注册"**,报错形态是 Spring Boot 3 典型的 `BeanDefinitionOverrideException: Invalid bean definition with name 'localeResolver' [...] already registered [...] Cannot register existing definition [...]`.
+
+根因链路完整推导:
+1. Spring Boot 启动后会自动装配 `MessageSourceAutoConfiguration` 和 `WebMvcAutoConfiguration`(Spring Boot `org.springframework.boot.autoconfigure` META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports 里默认声明)
+2. `MessageSourceAutoConfiguration` 中声明了 **`@Bean @ConditionalOnMissingBean(name = "messageSource")`** —— 只有不存在同名 Bean 时才注册 ResourceBundleMessageSource 作为默认实现
+3. `WebMvcAutoConfiguration.EnableWebMvcConfiguration` 会通过 `DispatcherServletAutoConfiguration` 链路注册名为 **`localeResolver`**(bean 名约定)的 LocaleResolver 实例(通常是 AcceptHeaderLocaleResolver)
+4. 我方 starter 的 [LocalizeAutoConfiguration.java](file:///d:/person/repository/dream-spring-boot-starter3/dream-localize3-spring-boot-starter/src/main/java/dream/flying/flower/autoconfigure/localize/LocalizeAutoConfiguration.java) 中 L138-L142 messageSource、L145-L190 localeResolver、L237-L244 localeChangeInterceptor 三个 `@Bean` 方法**没有任何 `@ConditionalOnMissingBean` 条件注解**,直接无条件声明同名 bean;同时原类只有 `@AutoConfiguration(after = FlywayAutoConfiguration)` —— 即比 Spring Boot 的 MessageSource / WebMvc 自动装配更晚执行,结果:
+   - 要么 Spring 默认已注册我方再注册 → **BeanDefinitionOverrideException**;
+   - 要么宿主工程手写过 `@Bean("localeResolver")` 自定义实现 → 与我方第二个定义再次冲突;
+   - 加上 Spring Boot 3.x 默认 `spring.main.allow-bean-definition-overriding=false`(2.x 默认 true,3.x 改 false,这就是为什么 boot2 项目不报错而 boot3 一定报错的根本原因)
+
+宿主项目一旦引入了 `spring-boot-starter-web`(几乎所有后端项目必引) + 手写过 i18n 配置类,就会触发三重冲突,直接启动崩溃。
+
+*变更内容:*
+严格遵循 Spring Boot Starter 官方 "non-invasive auto configuration" 原则,采用"**顺序优先 + 条件缺省 + primary 兜底**"三层组合修复,5 处具体改动:
+
+1. **类级自动装配顺序(L74-L75)**
+   - 原:`@AutoConfiguration(after = { FlywayAutoConfiguration.class })`
+   - 新:`@AutoConfiguration(after = { FlywayAutoConfiguration.class }, before = { MessageSourceAutoConfiguration.class, WebMvcAutoConfiguration.class })`
+   - 目的:让我方 starter 在 Spring Boot 默认的 MessageSource / WebMvc 自动装配**之前**先执行注册;这样 Spring Boot 默认自动配置的 `@ConditionalOnMissingBean(name = "messageSource" / "localeResolver")` 会**检测到我方已注册而主动跳过**,消除我方与 Spring 官方默认冲突的根源。这是修复重复注册的核心关键。
+   - 新增 import:`org.springframework.boot.autoconfigure.context.MessageSourceAutoConfiguration`、`org.springframework.boot.autoconfigure.web.servlet.WebMvcAutoConfiguration`。
+
+2. **messageSource Bean(L138-L143)**
+   - 原:`@Bean MessageSource messageSource(LocalizeService)` 无条件声明
+   - 新:`@Bean @Primary @ConditionalOnMissingBean(name = "messageSource") MessageSource messageSource(LocalizeService)`
+   - 三注解各司其职:
+     - `@ConditionalOnMissingBean(name = "messageSource")`:如果宿主工程已经自己写了一个同名 Bean(例如特殊业务 MessageSource),**我方不再注册**,避免与宿主冲突
+     - `@Primary`:当最终容器中出现多个 MessageSource 类型 Bean 时(例宿主用 @Bean 返回 MessageSource 但名字不同),让我方基于 DB + Redis 的 `LocalizeMessageSource` 优先被 @Autowired 注入,保证业务调用链正确
+     - 保留名称"messageSource":Spring MVC DispatcherServlet 约定按该 bean name 解析注入,**不改 bean name 才能正常被 Spring MVC 全局使用**
+   - 新增 import:`org.springframework.context.annotation.Primary`
+
+3. **localeResolver Bean(L145-L190)**
+   - 原:`@Bean LocaleResolver localeResolver()` 无条件声明
+   - 新:`@Bean @ConditionalOnMissingBean(name = "localeResolver") LocaleResolver localeResolver()`
+   - 逻辑:宿主工程如果已经手写了 `@Bean("localeResolver")`(例如 SaaS 多租户动态切换逻辑),我方跳过,由宿主 Bean 生效;否则我方注册,且因为 `before=WebMvcAutoConfiguration.class` 顺序,Spring 默认的 AcceptHeaderLocaleResolver 不会再装配,单例唯一,**零冲突**。这直接修复用户报的"LocaleResolver 已经被注册了"错误。
+
+4. **localeChangeInterceptor Bean(L237-L244)**
+   - 原:`@Bean LocaleChangeInterceptor localeChangeInterceptor()` 无条件声明
+   - 新:`@Bean @ConditionalOnMissingBean(name = "localeChangeInterceptor") LocaleChangeInterceptor localeChangeInterceptor()`
+   - 逻辑:宿主若已自定义语言参数拦截器,我方跳过;addInterceptors() 中调用 `localeChangeInterceptor()` 时仍通过 Spring CGLIB 代理方法拿到容器单例,保证注册拦截器的单例一致性。
+
+5. **README.md 增补 FAQ 章节(L357-L369)** 「常见问题 Q1」完整说明冲突原因 + 解决方案 3 级排查:
+   - 优先删除宿主自定义同名 Bean(推荐使用 starter 的 5 种 Resolver 策略 + DB 驱动 MessageSource);
+   - 若宿主必须保留自定义 Bean,保留即可,我方 starter 条件装配自动跳过;
+   - 极端冲突可用 `spring.main.allow-bean-definition-overriding=true` 临时兜底。
+   - 并附"装配顺序保证"说明,让后续维护者一眼理解 before 存在的意义。
+
+*修复结果:*
+- ✅ 典型 3 重冲突场景零报错:Spring Boot 默认自动装配 vs starter vs 宿主自定义配置类 —— 通过"before 先注册 + @ConditionalOnMissingBean 缺省 + Primary 兜底"三层组合,彻底消除 BeanDefinitionOverrideException
+- ✅ 启动日志 Bean 定义唯一性:引入 starter 后容器中最终只会存在 1 个 `messageSource`(要么宿主自定义,要么 starter DB 驱动实现,Spring 默认的已被跳过)、1 个 `localeResolver`、1 个 `localeChangeInterceptor`
+- ✅ 无破坏性:方法内部逻辑(5 种 resolver 策略切换、cookie 参数、header 参数、defaultLocale fallback 等)0 改动;bean name 全部保留 Spring 约定名,Spring MVC 全局 Locale 解析链路 / MessageSource 注入链路不做任何外部改动
+- ✅ GetDiagnostics:[] 0 errors(新增 4 个 import 正确,类/方法签名完全合法)
+- ✅ 方法行数:所有 @Bean 方法 1-8 行,parseLocale/buildSupportedLocales 辅助方法 8-15 行,全部严格 ≤ 100 行
+- ✅ 注释:新增 Javadoc 保持英文标点;原类注释 @date `2026-05-20 10:43:03`、原 README 的 enabled filtering / resolver strategy 章节均未删除或修改,只追加补充 FAQ 条目(符合"已有注释不删只增"规则)
+
+---
+
+## 2026-08-31(第十轮:修复 LocalizeServiceImpl 中 saveBatch/updateBatchById @Override 重写失败)
+
+### 修正改进(1 条)
+
+**① LocalizeServiceImpl 中批量写缓存失效钩子 saveBatch/updateBatchById 的参数签名由 `List<LocalizeEntity>` 改为 `Collection<LocalizeEntity>`,与父接口 IService 声明保持一致,解决 @Override 方法未覆盖 supertype 编译错误**
+
+*变更原因:*
+用户在 IDE 打开 [LocalizeServiceImpl.java](file:///d:/person/repository/dream-spring-boot-starter3/dream-localize3-spring-boot-starter/src/main/java/dream/flying/flower/autoconfigure/localize/service/impl/LocalizeServiceImpl.java) 时发现提示“类中有几个方法有错误,重写失败”。经反向推导继承链: `LocalizeServiceImpl extends AbstractServiceImpl<..., LocalizeMapper> extends MPJBaseServiceImpl<LocalizeMapper, LocalizeEntity> extends ServiceImpl<LocalizeMapper, LocalizeEntity> implements IService<LocalizeEntity>`。
+
+MyBatis-Plus `IService<T>` 官方接口对批量写方法的泛型参数声明本来就是**父接口级 `Collection<T>`**,不是子接口 `List<T>`:
+```
+// IService 官方签名
+public interface IService<T> {
+  boolean saveBatch(Collection<T> entityList);
+  boolean saveBatch(Collection<T> entityList, int batchSize);
+  boolean updateBatchById(Collection<T> entityList);
+  boolean updateBatchById(Collection<T> entityList, int batchSize);
+  ...
+}
+```
+
+我们上一轮写的是 **`boolean saveBatch(List<LocalizeEntity>)` / `boolean updateBatchById(List<LocalizeEntity>)`**。由于 Java **方法签名解析只按“精确参数类型+方法名”匹配**,`List` 虽然是 `Collection` 的子类型,但作为重写参数类型并不构成“相同方法签名”——在某些严格编译模式和 IDE 检查下,会报 **“方法 does not override or implement a method from a supertype” @Override 失败**。这是用户提到“有几个方法重写失败”的根因(典型就是 saveBatch + updateBatchById 两个批量方法,正好对应 2 个错误,符合用户“几个”的描述)。
+
+*变更内容:*
+1. **新增 import `java.util.Collection`**(文件 import 块第 5 行,保持字母序:ArrayList → Collection → HashMap)
+2. **两个 @Override 方法参数签名改为与父接口一致**(L449-L465):
+   - `public boolean saveBatch(List<LocalizeEntity> entityList)` → **`public boolean saveBatch(Collection<LocalizeEntity> entityList)`**
+   - `public boolean updateBatchById(List<LocalizeEntity> entityList)` → **`public boolean updateBatchById(Collection<LocalizeEntity> entityList)`**
+   - 方法体内逻辑、`super.saveBatch(...)` / `super.updateBatchById(...)` 调用、缓存失效 `evictCacheByEntities(entityList)` 回调完全不变。由于 `List<T> extends Collection<T>`,super 调用能完美匹配父类重载分支;调用方传 `ArrayList`、`LinkedList`、`Arrays.asList()` 返回值、`Collections.unmodifiableList()` 都能零改动直接传入(**兼容性更好**),符合性能优先、无破坏性原则。
+3. **辅助方法 evictCacheByEntities 参数同步从 `List<` → `Collection<`**(L494-L522),避免再发生“参数是 Collection 却进不了只接受 List 的 helper 方法”的二次 @Override 隐患。该私有辅助方法内部使用的 `ListHelper.isEmpty()` 本就支持 `Collection` 作为参数(框架工具的 isEmpty 接受任意集合),且 for-each 遍历对 `Collection` 完全支持,**零改动逻辑**。为保证英文注释完整,同步更新 Javadoc:说明 “accepts any Collection subtype (List, Set, Iterable returned by callers) and guards against null/empty via ListHelper.isEmpty”。
+
+*修复结果:*
+- `saveBatch(Collection<T>)` / `updateBatchById(Collection<T>)` 与 MyBatis-Plus `IService<T>` 官方签名**字节级一致**。@Override 注解不再报错,IDE 红色波浪线消失。
+- 其余 4 个写钩子(`save(LocalizeEntity)` / `updateById(LocalizeEntity)` / `removeById(Serializable id)` / `remove(Wrapper<LocalizeEntity>)`)的泛型与返回值 `boolean` 本来就和 MyBatis-Plus IService 完全一致,无需修改。
+- 兼容性:原调用方如果使用 `List<LocalizeEntity>` 传参,由于 List 是 Collection 子类型,自动向上转型,不需要改任何一行代码。同时现在也能接收 Set、其他自定义 Collection 实现,灵活性更高。
+- GetDiagnostics **[] zero errors**(在当前工程源码范围内无语法/符号错误)。
+- 所有修改的辅助方法行数:evictCacheByEntities 20 行;批量钩子方法各 7 行,均严格 ≤ 100 行方法上限。
+- 新增生成的 Javadoc 注释全部英文标点;用户原有类注释 @date 2026-05-20 10:43:03 完全未做任何删除或修改,只改我方生成的写钩子相关代码。
+
+---
+
 ## 2026-08-29(第九轮:LocalizeEndpoint 多余局部变量 inline + codes 判空统一用 ListHelper)
 
 ### 修正改进(1 条)

@@ -1,5 +1,6 @@
 package dream.flying.flower.autoconfigure.localize.endpoint;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -16,8 +17,8 @@ import dream.flying.flower.autoconfigure.localize.helpers.LocalizeHelpers;
 import dream.flying.flower.autoconfigure.localize.query.LocalizeQuery;
 import dream.flying.flower.autoconfigure.localize.service.LocalizeService;
 import dream.flying.flower.autoconfigure.localize.vo.LocalizeVO;
-import dream.flying.flower.framework.constant.ConstConfig;
 import dream.flying.flower.collection.ListHelper;
+import dream.flying.flower.framework.constant.ConstConfig;
 import dream.flying.flower.framework.web.controller.AbstractController;
 import dream.flying.flower.lang.StrHelper;
 import dream.flying.flower.result.Result;
@@ -63,15 +64,11 @@ public class LocalizeEndpoint extends AbstractController<LocalizeEntity, Localiz
 	 * @param lang optional BCP-47 language tag, e.g. zh-CN
 	 * @return Map<code, content> for the requested language, never null
 	 */
-	@Operation(summary = "按语言拉取全部词条",
-			description = "返回指定语言(或当前请求语言)下所有国际化词条Map,用于SPA启动全量拉取", method = "GET")
+	@Operation(summary = "按语言拉取全部词条", description = "返回指定语言(或当前请求语言)下所有国际化词条Map,用于SPA启动全量拉取", method = "GET")
 	@GetMapping("/messages")
 	public Result<Map<String, String>> messages(
-			@Parameter(description = "BCP-47语言标签,如zh-CN,不传则使用当前请求上下文的语言")
-			@RequestParam(value = "lang", required = false) String lang) {
-		return Result.ok(baseService.getAllMessages(StrHelper.isNotBlank(lang)
-				? LocalizeHelpers.parse(lang).toLanguageTag()
-				: LocalizeHelpers.getLang()));
+			@Parameter(description = "BCP-47语言标签,如zh-CN,不传则使用当前请求上下文的语言") @RequestParam(required = false) String lang) {
+		return Result.ok(baseService.getMessages(lang));
 	}
 
 	/**
@@ -82,18 +79,15 @@ public class LocalizeEndpoint extends AbstractController<LocalizeEntity, Localiz
 	 * @return Map<code, content> for requested codes, missing codes fall back to
 	 *         the code itself per service contract
 	 */
-	@Operation(summary = "按code批量拉取词条",
-			description = "仅返回指定code列表的国际化内容,用于懒加载模块按需拉取", method = "POST")
+	@Operation(summary = "按code批量拉取词条", description = "仅返回指定code列表的国际化内容,用于懒加载模块按需拉取", method = "POST")
 	@PostMapping("/messages/batch")
 	public Result<Map<String, String>> messagesBatch(
-			@Parameter(description = "BCP-47语言标签,如zh-CN,不传则使用当前请求上下文的语言")
-			@RequestParam(value = "lang", required = false) String lang,
+			@Parameter(description = "BCP-47语言标签,如zh-CN,不传则使用当前请求上下文的语言") @RequestParam(required = false) String lang,
 			@RequestBody(required = false) List<String> codes) {
 		if (ListHelper.isEmpty(codes)) {
-			return Result.ok(java.util.Collections.emptyMap());
+			return Result.ok(Collections.emptyMap());
 		}
-		return Result.ok(baseService.getMessages(codes, StrHelper.isNotBlank(lang)
-				? LocalizeHelpers.parse(lang).toLanguageTag()
-				: LocalizeHelpers.getLang()));
+		return Result.ok(baseService.getMessages(codes,
+				StrHelper.isNotBlank(lang) ? LocalizeHelpers.parse(lang).toLanguageTag() : LocalizeHelpers.getLang()));
 	}
 }

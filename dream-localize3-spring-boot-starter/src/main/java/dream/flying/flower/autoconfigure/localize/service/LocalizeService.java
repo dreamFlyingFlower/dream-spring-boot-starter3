@@ -24,7 +24,9 @@ public interface LocalizeService extends BaseServices<LocalizeEntity, LocalizeVO
 
 	Map<String, String> getMessages(List<String> localizeCodes, String lang);
 
-	Map<String, String> getAllMessages(String lang);
+	Map<String, String> getMessages();
+
+	Map<String, String> getMessages(String lang);
 
 	void clearCache();
 

@@ -1,6 +1,8 @@
 package dream.flying.flower.autoconfigure.localize.service.impl;
 
+import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -126,9 +128,14 @@ public class LocalizeServiceImpl
 	}
 
 	@Override
-	public Map<String, String> getAllMessages(String lang) {
-		String formatLang = LocalizeHelpers.parse(lang).toLanguageTag();
+	public Map<String, String> getMessages() {
+		return getMessages(LocalizeHelpers.getLang());
+	}
 
+	@Override
+	public Map<String, String> getMessages(String lang) {
+		String formatLang =
+				StrHelper.isNotBlank(lang) ? LocalizeHelpers.parse(lang).toLanguageTag() : LocalizeHelpers.getLang();
 		String cacheKey = buildCacheKey(formatLang);
 
 		// Try to get from cache first
@@ -228,7 +235,7 @@ public class LocalizeServiceImpl
 			return Map.of();
 		}
 		String lang = LocalizeHelpers.getLang(locale);
-		return getAllMessages(lang).entrySet()
+		return getMessages(lang).entrySet()
 				.stream()
 				.filter(entry -> localizeCodes.contains(entry.getKey()))
 				.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
@@ -247,7 +254,7 @@ public class LocalizeServiceImpl
 			return Map.of();
 		}
 		String lang = LocalizeHelpers.getLang(locale);
-		return getAllMessages(lang).entrySet()
+		return getMessages(lang).entrySet()
 				.stream()
 				.filter(entry -> localizeCodes.contains(entry.getKey()))
 				.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
@@ -305,7 +312,8 @@ public class LocalizeServiceImpl
 	}
 
 	private Map<String, String> getContents(List<String> localizeCodes, String lang) {
-		// Direct query by localizeCodes + exact fullLang, batch, ignore logically deleted rows
+		// Direct query by localizeCodes + exact fullLang, batch, ignore logically
+		// deleted rows
 		List<LocalizeEntity> localizeEntitys =
 				list(new LambdaQueryWrapper<LocalizeEntity>().in(LocalizeEntity::getLocalizeCode, localizeCodes)
 						.eq(LocalizeEntity::getFullLang, lang));
@@ -347,12 +355,13 @@ public class LocalizeServiceImpl
 		Map<String, LanguageEntity> fullLang2Language =
 				tags.stream().collect(Collectors.toMap(LanguageEntity::getFullLang, Function.identity()));
 
-		// Batch fallback query by (all ids in matched tags) AND (unresolved localizeCodes).
+		// Batch fallback query by (all ids in matched tags) AND (unresolved
+		// localizeCodes).
 		// The order inside the SQL IN() list does not affect the result set; the strict
 		// fallback priority is enforced later when iterating fallbackChain directly.
 		List<Long> tagIds = tags.stream().map(LanguageEntity::getId).collect(Collectors.toList());
-		List<LocalizeEntity> fallbackEntities = baseMapper.selectList(
-				new LambdaQueryWrapper<LocalizeEntity>().in(LocalizeEntity::getLanguageId, tagIds)
+		List<LocalizeEntity> fallbackEntities =
+				baseMapper.selectList(new LambdaQueryWrapper<LocalizeEntity>().in(LocalizeEntity::getLanguageId, tagIds)
 						.in(LocalizeEntity::getLocalizeCode, unresolvedKeys));
 
 		if (ListHelper.isEmpty(fallbackEntities)) {
@@ -371,7 +380,8 @@ public class LocalizeServiceImpl
 		// (most specific tag first, e.g. zh-Hans-CN -> zh-CN -> zh-Hans -> zh).
 		// Reuse the already-built fullLang2Language index to resolve the languageId,
 		// so we avoid an extra intermediate orderedLanguageIds materialization.
-		// Codes already resolved by the higher-priority language are skipped (resolvedSet),
+		// Codes already resolved by the higher-priority language are skipped
+		// (resolvedSet),
 		// so a lower-priority language never overwrites a higher-priority match.
 		Set<String> resolvedSet = new HashSet<>();
 		for (String languageTag : fallbackChain) {
@@ -406,7 +416,8 @@ public class LocalizeServiceImpl
 		return ConstCache.buildRedisKey(ConstStarter.PROJECT_NAME, ConstLocalize.MODULE_NAME, lang, localizeCode);
 	}
 
-	// ============== Write hooks: invalidate cache after any DB modification =========
+	// ============== Write hooks: invalidate cache after any DB modification
+	// =========
 
 	@Override
 	public boolean save(LocalizeEntity entity) {
@@ -427,8 +438,8 @@ public class LocalizeServiceImpl
 	}
 
 	@Override
-	public boolean removeById(Long id) {
-		LocalizeEntity old = findOneById(id);
+	public boolean removeById(Serializable id) {
+		LocalizeEntity old = getById(id);
 		boolean ok = super.removeById(id);
 		if (ok) {
 			if (old != null) {
@@ -441,7 +452,7 @@ public class LocalizeServiceImpl
 	}
 
 	@Override
-	public boolean saveBatch(List<LocalizeEntity> entityList) {
+	public boolean saveBatch(Collection<LocalizeEntity> entityList) {
 		boolean ok = super.saveBatch(entityList);
 		if (ok) {
 			evictCacheByEntities(entityList);
@@ -450,7 +461,7 @@ public class LocalizeServiceImpl
 	}
 
 	@Override
-	public boolean updateBatchById(List<LocalizeEntity> entityList) {
+	public boolean updateBatchById(Collection<LocalizeEntity> entityList) {
 		boolean ok = super.updateBatchById(entityList);
 		if (ok) {
 			evictCacheByEntities(entityList);
@@ -486,12 +497,14 @@ public class LocalizeServiceImpl
 	}
 
 	/**
-	 * Evict language caches for all distinct fullLang tags present on the list. If
-	 * any entity has no fullLang tag, fall back to full cache clear.
+	 * Evict language caches for all distinct fullLang tags present on the
+	 * collection. Accepts any Collection subtype (List, Set, Iterable returned by
+	 * callers) and guards against null/empty via ListHelper.isEmpty. If any entity
+	 * has no fullLang tag, fall back to full cache clear.
 	 *
-	 * @param entityList written batch
+	 * @param entityList written batch collection (any subtype, nullable)
 	 */
-	private void evictCacheByEntities(List<LocalizeEntity> entityList) {
+	private void evictCacheByEntities(Collection<LocalizeEntity> entityList) {
 		if (ListHelper.isEmpty(entityList)) {
 			return;
 		}
@@ -510,24 +523,6 @@ public class LocalizeServiceImpl
 			}
 		} else {
 			clearCache();
-		}
-	}
-
-	/**
-	 * Load entity by PK for cache invalidation before removal.
-	 *
-	 * @param id entity primary key
-	 * @return entity if found, otherwise null
-	 */
-	private LocalizeEntity findOneById(Long id) {
-		if (id == null) {
-			return null;
-		}
-		try {
-			return getById(id);
-		} catch (Exception ex) {
-			log.error("Localize findOneById failed for id: {}", id, ex);
-			return null;
 		}
 	}
 }

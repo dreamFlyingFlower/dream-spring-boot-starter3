@@ -35,7 +35,8 @@ CREATE TABLE IF NOT EXISTS `sys_localize` (
 	`updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
 	`deleted` TINYINT UNSIGNED DEFAULT 0 COMMENT '删除标志:0-正常;1-删除',
 	PRIMARY KEY (`id`) USING BTREE,
-	INDEX `idx_localize_code` (`localize_code`)
+	INDEX `idx_localize_code` (`localize_code`),
+	INDEX `idx_localize_lang_code` (`language_id`, `localize_code`);
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='国际化';
 
 -- =============================================
