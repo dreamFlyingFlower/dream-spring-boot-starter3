@@ -1,14 +1,11 @@
 package dream.flying.flower.autoconfigure.localize.endpoint;
 
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import dream.flying.flower.autoconfigure.localize.service.LocalizeService;
-import dream.flying.flower.framework.constant.ConstConfig;
 import dream.flying.flower.framework.web.controller.BaseController;
 import dream.flying.flower.result.Result;
 import io.swagger.v3.oas.annotations.Operation;
@@ -30,12 +27,10 @@ import lombok.RequiredArgsConstructor;
  * @date 2026-08-29 10:00:00
  * @git {@link https://github.com/dreamFlyingFlower}
  */
-@Tag(name = "国际化缓存API")
+@Tag(name = "国际化缓存")
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/localize-cache")
-@ConditionalOnMissingBean(name = "localizeCacheEndpointOverride")
-@ConditionalOnProperty(prefix = ConstConfig.Auto.LOCALIZE, name = "enabled-cache-endpoint", havingValue = "true")
 public class LocalizeCacheEndpoint implements BaseController {
 
 	private final LocalizeService localizeService;

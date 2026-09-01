@@ -6,26 +6,19 @@ import java.util.List;
 import java.util.Locale;
 import java.util.stream.Collectors;
 
-import javax.sql.DataSource;
-
 import org.apache.commons.lang3.StringUtils;
 import org.mybatis.spring.annotation.MapperScan;
 import org.springdoc.core.models.GroupedOpenApi;
-import org.springframework.boot.ApplicationArguments;
-import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.boot.autoconfigure.flyway.FlywayAutoConfiguration;
 import org.springframework.boot.autoconfigure.context.MessageSourceAutoConfiguration;
+import org.springframework.boot.autoconfigure.flyway.FlywayAutoConfiguration;
 import org.springframework.boot.autoconfigure.web.servlet.WebMvcAutoConfiguration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Primary;
-import org.springframework.core.Ordered;
-import org.springframework.core.annotation.Order;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
@@ -77,8 +70,8 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 @RequiredArgsConstructor
-@AutoConfiguration(after = { FlywayAutoConfiguration.class }, before = { MessageSourceAutoConfiguration.class,
-		WebMvcAutoConfiguration.class })
+@AutoConfiguration(after = { FlywayAutoConfiguration.class },
+		before = { MessageSourceAutoConfiguration.class, WebMvcAutoConfiguration.class })
 @EnableConfigurationProperties({ DreamLocalizeProperties.class })
 @MapperScan("dream.flying.flower.autoconfigure.localize.mapper")
 @ConditionalOnProperty(prefix = ConstConfig.Auto.LOCALIZE, name = ConstConfig.ENABLED, havingValue = "true",
@@ -90,7 +83,7 @@ public class LocalizeAutoConfiguration implements WebMvcConfigurer {
 	@Bean
 	@ConditionalOnMissingBean(LanguageEndpoint.class)
 	@ConditionalOnProperty(prefix = ConstConfig.Auto.LOCALIZE, name = ConstConfig.ENABLED_ENDPOINT,
-			havingValue = "true")
+			havingValue = "true", matchIfMissing = true)
 	LanguageEndpoint languageEndpoint() {
 		return new LanguageEndpoint();
 	}
@@ -98,14 +91,15 @@ public class LocalizeAutoConfiguration implements WebMvcConfigurer {
 	@Bean
 	@ConditionalOnMissingBean(LocalizeEndpoint.class)
 	@ConditionalOnProperty(prefix = ConstConfig.Auto.LOCALIZE, name = ConstConfig.ENABLED_ENDPOINT,
-			havingValue = "true")
+			havingValue = "true", matchIfMissing = true)
 	LocalizeEndpoint localizeEndpoint() {
 		return new LocalizeEndpoint();
 	}
 
 	@Bean
 	@ConditionalOnMissingBean(LocalizeCacheEndpoint.class)
-	@ConditionalOnProperty(prefix = ConstConfig.Auto.LOCALIZE, name = "enabled-cache-endpoint", havingValue = "true")
+	@ConditionalOnProperty(prefix = ConstConfig.Auto.LOCALIZE, name = "enabled-cache-endpoint", havingValue = "true",
+			matchIfMissing = true)
 	LocalizeCacheEndpoint localizeCacheEndpoint(LocalizeService localizeService) {
 		return new LocalizeCacheEndpoint(localizeService);
 	}
@@ -142,14 +136,11 @@ public class LocalizeAutoConfiguration implements WebMvcConfigurer {
 	}
 
 	@Bean
-	@Primary
-	@ConditionalOnMissingBean(name = "messageSource")
 	MessageSource messageSource(LocalizeService localizeService) {
 		return new LocalizeMessageSource(localizeService);
 	}
 
 	@Bean
-	@ConditionalOnMissingBean(name = "localeResolver")
 	LocaleResolver localeResolver() {
 		Locale defaultLocale = parseLocale(dreamLocalizeProperties.getDefaultLocale());
 		List<Locale> supportedLocales = buildSupportedLocales(dreamLocalizeProperties.getSupportedLocales());
@@ -255,9 +246,10 @@ public class LocalizeAutoConfiguration implements WebMvcConfigurer {
 	}
 
 	@Bean
-	@ConditionalOnProperty(prefix = ConstConfig.Auto.CONFIG, name = ConstConfig.ENABLED_API, havingValue = "true",
+	@ConditionalOnMissingBean(name = "systemGroupedOpenApi")
+	@ConditionalOnProperty(prefix = ConstConfig.Auto.LOCALIZE, name = ConstConfig.ENABLED_API, havingValue = "true",
 			matchIfMissing = true)
-	GroupedOpenApi configApi() {
+	GroupedOpenApi systemGroupedOpenApi() {
 		return GroupedOpenApi.builder()
 				// 分组标识,最好不要有中文,可能出错
 				.group(dreamLocalizeProperties.getApiGroup())
@@ -266,92 +258,5 @@ public class LocalizeAutoConfiguration implements WebMvcConfigurer {
 				// 扫描包路径
 				.packagesToScan(dreamLocalizeProperties.getApiPackageScan())
 				.build();
-	}
-
-	// =========================================================================
-	// Isolated per-starter Flyway instance. This is the OFFICIAL ZERO-CONFLICT
-	// pattern when packaging SQL migrations inside reusable Spring Boot
-	// starters. Host project + any number of sibling starters can run with
-	// THEIR OWN fully independent Flyway instances. Each instance:
-	//   (1) Scans ONLY its own sub-directory under classpath:db/migration/<mod>
-	//       (no overlap with host db/migration or other starter subdirectories)
-	//   (2) Writes applied-migration records to ITS OWN history table named
-	//       flyway_<module>_history. History tables are fully isolated, so two
-	//       different starters can both ship a V1.0.0 migration and there is
-	//       ZERO version-number collision. No one needs to coordinate versions.
-	//   (3) Runs AFTER the host project's main flywayInitializer bean, so host
-	//       baseline / shared schemas are already applied before starter tables.
-	//   (4) Uses baselineOnMigrate=true so existing databases are not blocked.
-	// =========================================================================
-
-	/**
-	 * Construct the isolated Flyway instance for the localize module. Only the
-	 * locations for THIS starter are registered, so the scanner cannot accidentally
-	 * pick up migrations from host projects or other starters. The history table
-	 * name uses a dedicated constant derived from module name. Construction-only;
-	 * migrate() is driven separately by the runner bean below.
-	 *
-	 * @param dataSource the auto-configured primary DataSource
-	 * @return Flyway instance for this starter (never null)
-	 */
-	@Bean(name = "localizeFlyway")
-	@ConditionalOnClass(name = "org.flywaydb.core.Flyway")
-	@ConditionalOnMissingBean(name = "localizeFlyway")
-	@ConditionalOnProperty(prefix = "spring.flyway", name = "enabled", havingValue = "true",
-			matchIfMissing = true)
-	org.flywaydb.core.Flyway localizeFlyway(DataSource dataSource) {
-		return org.flywaydb.core.Flyway.configure()
-				.dataSource(dataSource)
-				.locations(ConstLocalize.FLYWAY_LOCATION_CLASSPATH)
-				.table(ConstLocalize.FLYWAY_HISTORY_TABLE)
-				.baselineOnMigrate(true)
-				.baselineVersion("0")
-				.validateOnMigrate(true)
-				.outOfOrder(false)
-				.ignoreMigrationPatterns("*:missing")
-				.load();
-	}
-
-	/**
-	 * Runner that triggers migration for the isolated localize Flyway instance.
-	 * Runs with highest precedence so starter SQLs are applied BEFORE any
-	 * business-level ApplicationRunner/CommandLineRunner and BEFORE the first
-	 * HTTP request that would hit a sys_language/sys_localize table. The runner
-	 * depends on the host project's default flywayInitializer bean being fully
-	 * applied first; Spring Boot always completes context refresh (including the
-	 * host flywayInitializer) before any ApplicationRunner is invoked, so the
-	 * execution order is naturally correct without manual @DependsOn.
-	 *
-	 * @param localizeFlyway the isolated Flyway instance injected by qualifier
-	 * @return ApplicationRunner executed once on startup
-	 */
-	@Bean
-	@ConditionalOnClass(name = "org.flywaydb.core.Flyway")
-	@ConditionalOnMissingBean(name = "localizeFlywayMigrateRunner")
-	@ConditionalOnProperty(prefix = "spring.flyway", name = "enabled", havingValue = "true",
-			matchIfMissing = true)
-	@Order(Ordered.HIGHEST_PRECEDENCE)
-	ApplicationRunner localizeFlywayMigrateRunner(
-			@org.springframework.beans.factory.annotation.Qualifier("localizeFlyway") org.flywaydb.core.Flyway localizeFlyway) {
-		return new ApplicationRunner() {
-
-			@Override
-			public void run(ApplicationArguments args) throws Exception {
-				try {
-					org.flywaydb.core.api.MigrationResult result = localizeFlyway.migrate();
-					if (ListHelper.isNotEmpty(result.warnings)) {
-						log.warn("[localize] Flyway isolated migration finished with {} warnings.",
-								result.warnings.size());
-					}
-					log.info("[localize] Flyway isolated migration applied {} script(s), history table {}.",
-							result.migrationsExecuted, ConstLocalize.FLYWAY_HISTORY_TABLE);
-				} catch (Exception e) {
-					log.error(
-							"[localize] Isolated Flyway migration FAILED on locations={}, table={}. Aborting startup to protect data consistency.",
-							ConstLocalize.FLYWAY_LOCATION_CLASSPATH, ConstLocalize.FLYWAY_HISTORY_TABLE, e);
-					throw e;
-				}
-			}
-		};
 	}
 }
